@@ -2,7 +2,8 @@
   (:require [datomic.api :refer [db q] :as d]
             [scape.emitter :refer [emit-transaction-data]]
             [scape.analyze :refer [analyze-file ast-seq op= default-env]]
-            [scape.schema :refer [schema]]))
+            [scape.schema :refer [schema]]
+            [clojure.pprint :refer [pprint]]))
             
 
 (comment 
@@ -14,10 +15,12 @@
   (def conn (d/connect uri))
 
   (d/transact conn schema)
-  
+
   (doseq [ast (analyze-file "cljs/core.cljs")]
     (println "Transacting " (:op ast))
-    (d/transact conn (emit-transaction-data ast))
+    (let [tdata (emit-transaction-data ast)]
+      ;; (pprint tdata)
+      (d/transact conn tdata))
     (println "Done."))
 
   ;; How many ast nodes are there in core.cljs?

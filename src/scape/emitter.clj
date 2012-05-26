@@ -59,20 +59,35 @@
                             [[:db/add entity-id :ast/ns (-> ast :info :ns str)]]))}))
 
 ;; TODO: numbered statements or linked list?
-(defn block-transaction [eid {:keys [statements ret]}]
+(defn emit-block [eid {:keys [statements ret]}]
   (let [stmnt-tx-data (map emit statements)
         stmnt-ids (map :entity-id stmnt-tx-data)
-        stmnt-txs (map :transaction stmnt-tx-data)
+        stmnt-txs (mapcat :transaction stmnt-tx-data)
         {ret-id :entity-id
-         ret-tx :transaction} (map emit ret)]
+         ret-tx :transaction} (emit ret)]
     (concat (map #(vector :db/add eid :ast/statement %) stmnt-ids)
             stmnt-txs
             [[:db/add eid :ast/ret ret-id]]
             ret-tx)))
 
-;;(defmethod emit :fn
-;;  [ast]
-;;  ..)
+(defn emit-fn-method
+  [eid {:keys [variadic max-fixed-arity] :as method}]
+  (let [method-id (id)]
+    (concat [[:db/add eid :ast.fn/method method-id]
+             [:db/add method-id :ast.fn/variadic variadic]
+             [:db/add method-id :ast.fn/fixed-arity max-fixed-arity]]
+            (emit-block method-id method))))
+
+
+(defmethod emit :fn
+  [{:keys [methods] :as ast}]
+  (let [entity-id (id)
+        method-txs (mapcat #(emit-fn-method entity-id %) methods)]
+    {:entity-id entity-id
+     :transaction (concat (emit-common entity-id ast)
+                          method-txs)}))
+    
+
 
 (defmethod emit :constant
   [{:keys [form] :as ast}]

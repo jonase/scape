@@ -82,6 +82,20 @@
     :db/ident :ast.op/no-op}
 
    {:db/id #db/id[:db.part/db]
+    :db/ident :ast/statement
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/many
+    :db/doc "A block statement"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast/ret
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one
+    :db/doc "A block return expression"
+    :db.install/_attribute :db.part/db}
+   
+   {:db/id #db/id[:db.part/db]
     :db/ident :ast/child
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many
@@ -168,9 +182,27 @@
     :db/cardinality :db.cardinality/one
     :db/doc "is the var local or not?"
     :db.install/_attribute :db.part/db}
+
+   ;; :fn
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.fn/method
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/many
+    :db/doc "A function method"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.fn/variadic
+    :db/valueType :db.type/boolean
+    :db/cardinality :db.cardinality/many
+    :db/doc "A function method"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.fn/fixed-arity
+    :db/valueType :db.type/long
+    :db/cardinality :db.cardinality/many
+    :db/doc "A function method"
+    :db.install/_attribute :db.part/db}
    
    ])
-
-;; I should use :children. How do I refer to its :parent? can this be
-;; done in datomic? Should :children be a multivalued :ref?
-;; Should probably be named :child. Also, we'd need a :toplevel
