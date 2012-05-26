@@ -78,4 +78,16 @@
         (sort-by second)
         reverse)
 
+  ;; On what line is the return of a function method a constant and
+  ;; what is the type of that constant?
+  ;; TODO: This is crazy slow, why?
+  (q '[:find ?line ?type
+       :where
+       [?fn :ast/op :ast.op/fn]
+       [?fn :ast.fn/method ?fnm]
+       [?fnm :ast/ret ?ret]
+       [?ret :ast/op :ast.op/constant]
+       [?ret :ast.constant/type ?type]
+       [?ret :ast/line ?line]]
+     (db conn))
   )
