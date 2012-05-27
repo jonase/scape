@@ -29,7 +29,17 @@
                           test-tx
                           then-tx
                           else-tx)}))
-    
+
+(defmethod emit :throw
+  [{throw-expr :throw} :as ast]
+  (let [entity-id (id)
+        {throw-id :entity-id
+         throw-tx :transaction} (emit throw-expr)]
+    {:entity-id entity-id
+     :transaction (concat (emit-common entity-id ast)
+                          [[:db/add entity-id :ast.throw/expr throw-id]]
+                          throw-tx)}))
+
 (defmethod emit :def
   [{:keys [name init doc] :as ast}]
   (let [entity-id (id)

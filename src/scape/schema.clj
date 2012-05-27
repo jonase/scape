@@ -204,5 +204,13 @@
     :db/cardinality :db.cardinality/many
     :db/doc "A function method"
     :db.install/_attribute :db.part/db}
+
+   ;; Throw
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.throw/expr
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one
+    :db/doc "Throw expression"
+    :db.install/_attribute :db.part/db}
    
    ])
