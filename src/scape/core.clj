@@ -1,10 +1,9 @@
 (ns scape.core
   (:require [datomic.api :refer [db q] :as d]
             [scape.emitter :refer [emit-transaction-data]]
-            [scape.analyze :refer [analyze-file ast-seq op= default-env]]
+            [scape.analyze :refer [analyze-file]]
             [scape.schema :refer [schema]]
             [clojure.pprint :refer [pprint]]))
-            
 
 (comment 
   (def uri "datomic:mem://ast")
@@ -17,12 +16,19 @@
   (d/transact conn schema)
 
   (doseq [ast (analyze-file "cljs/core.cljs")]
-    (println "Transacting " (:op ast))
     (let [tdata (emit-transaction-data ast)]
-      ;; (pprint tdata)
-      (d/transact conn tdata))
-    (println "Done."))
+      (d/transact conn tdata)))
 
+  ;; how many transactions? i.e., top level forms
+  (count (analyze-file "cljs/core.cljs"))
+  ;; 502
+  
+  ;; How many datoms is the above?
+  (->> (analyze-file "cljs/core.cljs")
+       (mapcat emit-transaction-data)
+       count)
+  ;; 142955 facts about cljs.core!
+  
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
               :where

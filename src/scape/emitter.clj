@@ -87,7 +87,11 @@
      :transaction (concat (emit-common entity-id ast)
                           method-txs)}))
     
-
+(defmethod emit :do [ast]
+  (let [entity-id (id)]
+    {:entity-id entity-id
+     :transaction (concat (emit-common entity-id ast)
+                          (emit-block entity-id ast))}))
 
 (defmethod emit :constant
   [{:keys [form] :as ast}]
