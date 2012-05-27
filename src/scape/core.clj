@@ -95,4 +95,19 @@
        [?ret :ast.constant/type ?type]
        [?ret :ast/line ?line]]
      (db conn))
+
+  ;; Most used op's. Can this be combined into one query?
+  (sort-by second
+           (for [[op] (q '[:find ?op
+                           :where
+                           [?_ :ast/op ?op*]
+                           [?op* :db/ident ?op]]
+                         (db conn))]
+             [op (count (q '[:find ?e
+                             :in $ ?op
+                             :where
+                             [?e :ast/op ?op]]
+                           (db conn) op))]))
+
+  
   )
