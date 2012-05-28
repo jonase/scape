@@ -31,7 +31,7 @@
                           else-tx)}))
 
 (defmethod emit :throw
-  [{throw-expr :throw} :as ast]
+  [{throw-expr :throw :as ast}]
   (let [entity-id (id)
         {throw-id :entity-id
          throw-tx :transaction} (emit throw-expr)]
