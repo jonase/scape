@@ -5,7 +5,7 @@
   (tempid :db.part/user))
 
 (defn- emit-common
-  [entity-id {:keys [env op form]}]
+  [entity-id {:keys [env op form] :as ast}]
   [[:db/add entity-id :ast/op (keyword "ast.op" (name op))]
    [:db/add entity-id :ast/line (or (:line env) -1)]
    [:db/add entity-id :ast/form (pr-str form)]])
@@ -88,7 +88,6 @@
              [:db/add method-id :ast.fn/fixed-arity max-fixed-arity]]
             (emit-block method-id method))))
 
-
 (defmethod emit :fn
   [{:keys [methods] :as ast}]
   (let [entity-id (id)
@@ -111,6 +110,27 @@
     {:entity-id entity-id
      :transaction (concat (emit-common entity-id ast)
                           [[:db/add entity-id :ast.constant/type form-type]])}))
+
+(defn- emit-binding [eid {:keys [name init]}]
+  (let [binding-id (id)
+        {init-id :entity-id
+         init-tx :transaction} (emit init)]
+    (concat [[:db/add eid :ast.let/binding binding-id]
+             [:db/add binding-id :ast.let.binding/name (str name)]
+             [:db/add binding-id :ast.let.binding/init init-id]]
+            init-tx)))
+
+(defn- emit-bindings [eid bindings]
+  (mapcat #(emit-binding eid %) bindings))
+
+(defmethod emit :let
+  [{:keys [loop bindings] :as ast}]
+  (let [entity-id (id)]
+    {:entity-id entity-id
+     :transaction (concat (emit-common entity-id ast)
+                          (emit-bindings entity-id bindings)
+                          (emit-block entity-id ast)
+                          [[:db/add entity-id :ast.let/loop loop]])}))
 
 (defmethod emit :default
   [{:keys [op children form] :as ast}]

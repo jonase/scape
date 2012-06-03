@@ -212,5 +212,33 @@
     :db/cardinality :db.cardinality/one
     :db/doc "Throw expression"
     :db.install/_attribute :db.part/db}
-   
+
+   ;; Let
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.let/loop
+    :db/valueType :db.type/boolean
+    :db/cardinality :db.cardinality/one
+    :db/doc "Is this let expr a loop?"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.let/binding
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/many
+    :db/doc "Let or loop binding"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.let.binding/name
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "The name being bound in a let or loop expression"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast.let.binding/init
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/one
+    :db/doc "Init expr"
+    :db.install/_attribute :db.part/db}
    ])

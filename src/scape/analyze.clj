@@ -1,6 +1,8 @@
 (ns scape.analyze
   (:require [cljs.compiler :as c]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [clojure.walk :as walk]))
+
 
 (defn ast-seq [ast]
   (tree-seq :children :children ast))
@@ -30,3 +32,7 @@
 (def default-env {:ns 'cljs.user
                   :context :statement
                   :locals {}})
+
+(defn deep-dissoc [coll & ks]
+  (walk/prewalk #(if (map? %) (apply dissoc % ks) %)
+                coll))
