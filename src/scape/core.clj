@@ -15,7 +15,7 @@
   (def conn (d/connect uri))
   
   (d/transact conn schema)
-
+  
   (doseq [ast (analyze-file "cljs/core.cljs")]
     (let [tdata (emit-transaction-data ast)]
       (d/transact conn tdata)))
@@ -28,7 +28,7 @@
   (->> (analyze-file "cljs/core.cljs")
        (mapcat emit-transaction-data)
        count)
-  ;; 142955 facts about cljs.core!
+  ;; 146669 facts about cljs.core!
   
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
@@ -109,4 +109,13 @@
                              :where
                              [?e :ast/op ?op]]
                            (db conn) op))]))
+
+  ;; On what lines is a loop used?
+  (q '[:find ?line
+       :where
+       [?let :ast/op :ast.op/let]
+       [?let :ast.let/loop true]
+       [?let :ast/line ?line]]
+     (db conn))
+  
   )
