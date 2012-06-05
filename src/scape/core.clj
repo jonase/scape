@@ -117,5 +117,19 @@
        [?let :ast.let/loop true]
        [?let :ast/line ?line]]
      (db conn))
+
+  ;; How many invokations?
+  (count (q '[:find ?invoke
+              :where
+              [?invoke :ast/op :ast.op/invoke]]
+            (db conn)))
+
+  ;; Enumerate the keywords used as function
+  (q '[:find ?kw
+       :where
+       [?e :ast.invoke/f ?kw*]
+       [?kw* :ast/op :ast.op/constant]
+       [?kw* :ast/form ?kw]]
+     (db conn))
   
   )

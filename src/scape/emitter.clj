@@ -132,6 +132,20 @@
                           (emit-block entity-id ast)
                           [[:db/add entity-id :ast.let/loop loop]])}))
 
+(defmethod emit :invoke
+  [{:keys [f args] :as ast}]
+  (let [entity-id (id)
+        {fid :entity-id
+         ftx :transaction} (emit f)
+        args-tx-data (map emit args)]
+    {:entity-id entity-id
+     :transaction (concat (emit-common entity-id ast)
+                          [[:db/add entity-id :ast.invoke/f fid]]
+                          ftx
+                          (map #(vector :db/add entity-id :ast.invoke/arg (:entity-id %))
+                               args-tx-data)
+                          (mapcat :transaction args-tx-data))}))
+
 (defmethod emit :default
   [{:keys [op children form] :as ast}]
   (let [entity-id (id)
