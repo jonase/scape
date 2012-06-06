@@ -142,7 +142,17 @@
      :transaction (concat (emit-common entity-id ast)
                           [[:db/add entity-id :ast.invoke/f fid]]
                           ftx
-                          (map #(vector :db/add entity-id :ast.invoke/arg (:entity-id %))
+                          (map #(vector :db/add entity-id :ast/arg (:entity-id %))
+                               args-tx-data)
+                          (mapcat :transaction args-tx-data))}))
+
+(defmethod emit :recur
+  [{:keys [exprs] :as ast}]
+  (let [entity-id (id)
+        args-tx-data (map emit exprs)]
+    {:entity-id entity-id
+     :transaction (concat (emit-common entity-id ast)
+                          (map #(vector :db/add entity-id :ast/arg (:entity-id %))
                                args-tx-data)
                           (mapcat :transaction args-tx-data))}))
 

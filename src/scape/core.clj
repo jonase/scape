@@ -131,5 +131,16 @@
        [?kw* :ast/op :ast.op/constant]
        [?kw* :ast/form ?kw]]
      (db conn))
+
+  ;; Any local functions used?
+  (sort-by second
+           (q '[:find ?name ?line
+                :where
+                [?e :ast.invoke/f ?var]
+                [?var :ast.var/local true]
+                [?var :ast/line ?line]
+                [?var :ast/name ?name]]
+              (db conn)))
+              
   
   )

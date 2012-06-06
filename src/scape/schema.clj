@@ -129,6 +129,13 @@
     :db/cardinality :db.cardinality/one
     :db/doc "namespace"
     :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast/arg
+    :db/valueType :db.type/ref
+    :db/cardinality :db.cardinality/many
+    :db/doc "Arguments"
+    :db.install/_attribute :db.part/db}
       
    ;; :constant
    {:db/id #db/id[:db.part/db]
@@ -250,11 +257,6 @@
     :db/doc "Function being invoked"
     :db.install/_attribute :db.part/db}
 
-   {:db/id #db/id[:db.part/db]
-    :db/ident :ast.invoke/arg
-    :db/valueType :db.type/ref
-    :db/cardinality :db.cardinality/many
-    :db/doc "Arguments"
-    :db.install/_attribute :db.part/db}
+
 
    ])
