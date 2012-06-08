@@ -167,8 +167,10 @@
 
       ;; Do
       [(child ?parent ?child)
+       [?parent :ast/op :ast.op/do]
        [?parent :ast/statement ?child]]
       [(child ?parent ?child)
+       [?parent :ast/op :ast.op/do]
        [?parent :ast/ret ?child]]
 
       ;; Fn
@@ -183,16 +185,24 @@
       ;; Let
       [(child ?parent ?child)
        [?parent :ast.let.binding/init ?child]]
-      ;; + same as do
+      [(child ?parent ?child)
+       [?parent :ast/op :ast.op/let]
+       [?parent :ast/statement ?child]]
+      [(child ?parent ?child)
+       [?parent :ast/op :ast.op/let]
+       [?parent :ast/ret ?child]]
 
       ;; Invoke
       [(child ?parent ?child)
        [?parent :ast.invoke/f ?child]]
-
       [(child ?parent ?child)
+       [?parent :ast/op :ast.op/invoke]
        [?parent :ast/arg ?child]]
 
       ;; Recur -- same as invoke
+      [(child ?parent ?child)
+       [?parent :ast/op :ast.op/recur]
+       [?parent :ast/arg ?child]]
 
       ;; Default
       [(child ?parent ?child)
