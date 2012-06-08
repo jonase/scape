@@ -147,4 +147,49 @@
                 [?var :ast/line ?line]
                 [?var :ast/name ?name]]
               (db conn)))
+
+  (defn child-rule
+    '[;; If
+      [(child ?parent ?child)
+       [?parent :ast.if/test ?child]]
+      [(child ?parent ?child)
+       [?parent :ast.if/then ?child]]
+      [(child ?parent ?child)
+       [?parent :ast.if/else ?child]]
+
+      ;; Throw
+      [(child ?parent ?child)
+       [?parent :ast.throw/expr ?child]]
+
+      ;; Def
+      [(child ?parent ?child)
+       [?parent :ast.def/init ?child]]
+
+      ;; Var -- has no children
+
+      ;; Fn -- tricky
+
+      ;; Do
+      [(child ?parent ?child)
+       [?parent :ast/statement ?child]]
+      [(child ?parent ?child)
+       [?parent :ast/ret ?child]]
+
+      ;; Let
+      [(child ?parent ?child)
+       [?parent :ast.let.binding/init ?child]]
+      ;; + same as do
+
+      ;; Invoke
+      [(child ?parent ?child)
+       [?parent :ast.invoke/f ?child]]
+
+      [(child ?parent ?child)
+       [?parent :ast/arg ?child]]
+
+      ;; Recur -- same as invoke
+
+      ;; Default
+      [(child ?parent ?child)
+       [?parent :ast/child ?child]]])
   )
