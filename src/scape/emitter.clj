@@ -169,4 +169,8 @@
                           tx)}))
 
 (defn emit-transaction-data [ast]
-  (-> ast emit :transaction vec))
+  (let [{eid :entity-id
+         tx :transaction} (emit ast)]
+    (cons [:db/add eid :ast/top-level true]
+          tx)))
+

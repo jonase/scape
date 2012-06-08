@@ -82,6 +82,13 @@
     :db/ident :ast.op/no-op}
 
    {:db/id #db/id[:db.part/db]
+    :db/ident :ast/top-level
+    :db/valueType :db.type/boolean
+    :db/cardinality :db.cardinality/one
+    :db/doc "Top level form?"
+    :db.install/_attribute :db.part/db}
+   
+   {:db/id #db/id[:db.part/db]
     :db/ident :ast/statement
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/many
@@ -256,7 +263,5 @@
     :db/cardinality :db.cardinality/one
     :db/doc "Function being invoked"
     :db.install/_attribute :db.part/db}
-
-
 
    ])

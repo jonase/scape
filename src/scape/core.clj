@@ -23,12 +23,18 @@
   ;; how many transactions? i.e., top level forms
   (count (analyze-file "cljs/core.cljs"))
   ;; 502
+
+  ;; Same as above
+  (count (q '[:find ?e
+              :where
+              [?e :ast/top-level true]]
+            (db conn)))
   
   ;; How many datoms is the above?
   (->> (analyze-file "cljs/core.cljs")
        (mapcat emit-transaction-data)
        count)
-  ;; 146669 facts about cljs.core!
+  ;; 147171 facts about cljs.core!
   
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
@@ -141,6 +147,4 @@
                 [?var :ast/line ?line]
                 [?var :ast/name ?name]]
               (db conn)))
-              
-  
   )
