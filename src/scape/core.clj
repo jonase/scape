@@ -148,7 +148,7 @@
                 [?var :ast/name ?name]]
               (db conn)))
 
-  (defn child-rule
+  (def child-rules
     '[;; If
       [(child ?parent ?child)
        [?parent :ast.if/test ?child]]
@@ -165,15 +165,20 @@
       [(child ?parent ?child)
        [?parent :ast.def/init ?child]]
 
-      ;; Var -- has no children
-
-      ;; Fn -- tricky
-
       ;; Do
       [(child ?parent ?child)
        [?parent :ast/statement ?child]]
       [(child ?parent ?child)
        [?parent :ast/ret ?child]]
+
+      ;; Fn
+      [(child ?parent ?child)
+       [?parent :ast.fn/method ?method]
+       [?method :ast/statement ?child]]
+
+      [(child ?parent ?child)
+       [?parent :ast.fn/method ?method]
+       [?method :ast/ret ?child]]
 
       ;; Let
       [(child ?parent ?child)
@@ -192,4 +197,5 @@
       ;; Default
       [(child ?parent ?child)
        [?parent :ast/child ?child]]])
+
   )
