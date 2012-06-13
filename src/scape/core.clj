@@ -191,5 +191,18 @@
        [?op* :db/ident ?op]
        [?parent :ast/line ?line]]
      (db conn) child-rules)
+
+  ;; What op's are defined?
+  (->> 
+   (q '[:find ?op ?child
+        :in $ %
+        :where
+        [?def :ast/op :ast.op/def]
+        [child ?def ?child]
+        [?child :ast/op ?op*]
+        [?op* :db/ident ?op]]
+      (db conn) child-rules)
+   (map first)
+   frequencies)
   
   )
