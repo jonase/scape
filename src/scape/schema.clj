@@ -242,20 +242,6 @@
     :db/doc "Let or loop binding"
     :db.install/_attribute :db.part/db}
 
-   {:db/id #db/id[:db.part/db]
-    :db/ident :ast.let.binding/name
-    :db/valueType :db.type/string
-    :db/cardinality :db.cardinality/one
-    :db/doc "The name being bound in a let or loop expression"
-    :db.install/_attribute :db.part/db}
-
-   {:db/id #db/id[:db.part/db]
-    :db/ident :ast.let.binding/init
-    :db/valueType :db.type/ref
-    :db/cardinality :db.cardinality/one
-    :db/doc "Init expr"
-    :db.install/_attribute :db.part/db}
-
    ;; :invoke
    {:db/id #db/id[:db.part/db]
     :db/ident :ast.invoke/f

@@ -115,8 +115,8 @@
         {init-id :entity-id
          init-tx :transaction} (emit init)]
     (concat [[:db/add eid :ast.let/binding binding-id]
-             [:db/add binding-id :ast.let.binding/name (str name)]
-             [:db/add binding-id :ast.let.binding/init init-id]]
+             [:db/add binding-id :ast/name (str name)]
+             [:db/add binding-id :ast/init init-id]]
             init-tx)))
 
 (defn- emit-bindings [eid bindings]

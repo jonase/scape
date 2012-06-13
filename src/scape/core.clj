@@ -173,7 +173,8 @@
        [?parent :ast.fn/method ?method]
        [?method :ast/ret ?child]]
       [(child ?parent ?child)
-       [?parent :ast.let.binding/init ?child]]
+       [?parent :ast.let/binding ?binding]
+       [?binding :ast/init ?child]]
       [(child ?parent ?child)
        [?parent :ast.invoke/f ?child]]])
       
