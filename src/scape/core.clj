@@ -185,21 +185,21 @@
   (q '[:find ?op ?line
        :in $ %
        :where
-       [?recur :ast/op :ast.op/recur]
-       [child ?parent ?recur]
-       [?parent :ast/op ?op*]
+       [?r :ast/op :ast.op/recur]
+       [child ?p* ?r]
+       [?p* :ast/op ?op*]
        [?op* :db/ident ?op]
-       [?parent :ast/line ?line]]
+       [?p* :ast/line ?line]]
      (db conn) child-rules)
 
   ;; What op's are defined?
   (->> 
-   (q '[:find ?op ?child
+   (q '[:find ?op ?init
         :in $ %
         :where
         [?def :ast/op :ast.op/def]
-        [child ?def ?child]
-        [?child :ast/op ?op*]
+        [child ?def ?init]
+        [?init :ast/op ?op*]
         [?op* :db/ident ?op]]
       (db conn) child-rules)
    (map first)
