@@ -176,7 +176,7 @@
 
    ;; :def
    {:db/id #db/id[:db.part/db]
-    :db/ident :ast.def/init
+    :db/ident :ast/init
     :db/valueType :db.type/ref
     :db/cardinality :db.cardinality/one
     :db/doc "init"

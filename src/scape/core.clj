@@ -149,8 +149,10 @@
 
   (def child-rules
     '[[(child ?parent ?child)
+       [?parent :ast/op]
        [?parent :ast/statement ?child]]
       [(child ?parent ?child)
+       [?parent :ast/op]
        [?parent :ast/ret ?child]]
       [(child ?parent ?child)
        [?parent :ast/child ?child]]
@@ -163,7 +165,8 @@
       [(child ?parent ?child)
        [?parent :ast.if/else ?child]]
       [(child ?parent ?child)
-       [?parent :ast.def/init ?child]]
+       [?parent :ast/op]
+       [?parent :ast/init ?child]]
       [(child ?parent ?child)
        [?parent :ast.throw/expr ?child]]
       [(child ?parent ?child)
