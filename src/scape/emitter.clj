@@ -105,8 +105,7 @@
 (defmethod emit :constant
   [{:keys [form] :as ast}]
   (let [entity-id (id)
-        form-type (pr-str (type form))
-        form-str (pr-str form)]
+        form-type (pr-str (type form))]
     {:entity-id entity-id
      :transaction (concat (emit-common entity-id ast)
                           [[:db/add entity-id :ast.constant/type form-type]])}))

@@ -5,7 +5,6 @@
             [scape.schema :refer [schema]]
             [clojure.pprint :refer [pprint]]))
 
-
 (comment
   (def uri "datomic:mem://ast")
   
@@ -149,63 +148,44 @@
               (db conn)))
 
   (def child-rules
-    '[;; If
+    '[[(child ?parent ?child)
+       [?parent :ast/statement ?child]]
+      [(child ?parent ?child)
+       [?parent :ast/ret ?child]]
+      [(child ?parent ?child)
+       [?parent :ast/child ?child]]
+      [(child ?parent ?child)
+       [?parent :ast/arg ?child]]
       [(child ?parent ?child)
        [?parent :ast.if/test ?child]]
       [(child ?parent ?child)
        [?parent :ast.if/then ?child]]
       [(child ?parent ?child)
        [?parent :ast.if/else ?child]]
-
-      ;; Throw
-      [(child ?parent ?child)
-       [?parent :ast.throw/expr ?child]]
-
-      ;; Def
       [(child ?parent ?child)
        [?parent :ast.def/init ?child]]
-
-      ;; Do
       [(child ?parent ?child)
-       [?parent :ast/op :ast.op/do]
-       [?parent :ast/statement ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/op :ast.op/do]
-       [?parent :ast/ret ?child]]
-
-      ;; Fn
+       [?parent :ast.throw/expr ?child]]
       [(child ?parent ?child)
        [?parent :ast.fn/method ?method]
        [?method :ast/statement ?child]]
-
       [(child ?parent ?child)
        [?parent :ast.fn/method ?method]
        [?method :ast/ret ?child]]
-
-      ;; Let
       [(child ?parent ?child)
        [?parent :ast.let.binding/init ?child]]
       [(child ?parent ?child)
-       [?parent :ast/op :ast.op/let]
-       [?parent :ast/statement ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/op :ast.op/let]
-       [?parent :ast/ret ?child]]
-
-      ;; Invoke
-      [(child ?parent ?child)
-       [?parent :ast.invoke/f ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/op :ast.op/invoke]
-       [?parent :ast/arg ?child]]
-
-      ;; Recur -- same as invoke
-      [(child ?parent ?child)
-       [?parent :ast/op :ast.op/recur]
-       [?parent :ast/arg ?child]]
-
-      ;; Default
-      [(child ?parent ?child)
-       [?parent :ast/child ?child]]])
-
+       [?parent :ast.invoke/f ?child]]])
+      
+  ;;What op's are parents to recur?
+  (q '[:find ?op ?line
+       :in $ %
+       :where
+       [?recur :ast/op :ast.op/recur]
+       [child ?parent ?recur]
+       [?parent :ast/op ?op*]
+       [?op* :db/ident ?op]
+       [?parent :ast/line ?line]]
+     (db conn) child-rules)
+  
   )
