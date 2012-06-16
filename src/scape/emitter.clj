@@ -50,7 +50,7 @@
                           (when init
                             [[:db/add entity-id :ast/init init-id]])
                           (when doc
-                            [[:db/add entity-id :ast.def/doc doc]])
+                            [[:db/add entity-id :db/doc doc]])
                           [[:db/add entity-id :ast/name (str name)]]
                           init-tx)}))
 

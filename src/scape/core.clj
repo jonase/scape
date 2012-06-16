@@ -64,7 +64,7 @@
        :in $ ?name
        :where
        [?def :ast/name ?name]
-       [?def :ast.def/doc ?doc]
+       [?def :db/doc ?doc]
        [?def :ast/line ?line]]
      (db conn) "cljs.core.filter")
   

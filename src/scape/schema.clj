@@ -182,13 +182,6 @@
     :db/doc "init"
     :db.install/_attribute :db.part/db}
 
-   {:db/id #db/id[:db.part/db]
-    :db/ident :ast.def/doc
-    :db/valueType :db.type/string
-    :db/cardinality :db.cardinality/one
-    :db/doc "doc"
-    :db.install/_attribute :db.part/db}
-
    ;; :var
    {:db/id #db/id[:db.part/db]
     :db/ident :ast.var/local
