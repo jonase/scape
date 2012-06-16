@@ -51,7 +51,7 @@
                             [[:db/add entity-id :ast/init init-id]])
                           (when doc
                             [[:db/add entity-id :db/doc doc]])
-                          [[:db/add entity-id :ast/name (str name)]]
+                          [[:db/add entity-id :db/ident (keyword name)]]
                           init-tx)}))
 
 (defn- local? [var-node]
@@ -64,9 +64,12 @@
     {:entity-id entity-id
      :transaction (concat (emit-common entity-id ast)
                           [[:db/add entity-id :ast.var/local (local? ast)]
-                           [:db/add entity-id :ast/name (-> ast :info :name str)]]
+                           [:db/add entity-id :ast/name (-> ast :info :name keyword)]]
                           (when-not (local? ast)
-                            [[:db/add entity-id :ast/ns (-> ast :info :ns str)]]))}))
+                            [[:db/add entity-id :ast/ns
+                              (or (-> ast :info :ns keyword)
+                                  :bad-ns)]]))})) ;; NOTE: due to possible "buggy" cljs code
+                                                  ;; e.g. a.state instead of (.-state a)
 
 ;; TODO: numbered statements or linked list?
 (defn emit-block [eid {:keys [statements ret]}]
@@ -115,7 +118,7 @@
         {init-id :entity-id
          init-tx :transaction} (emit init)]
     (concat [[:db/add eid :ast.let/binding binding-id]
-             [:db/add binding-id :ast/name (str name)]
+             [:db/add binding-id :ast/name (keyword name)]
              [:db/add binding-id :ast/init init-id]]
             init-tx)))
 

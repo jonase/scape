@@ -60,13 +60,14 @@
      (db conn))
   
   ;; Find documentation and line number
+  ;; Note, will be better with new unmunged names
   (q '[:find ?line ?doc
        :in $ ?name
        :where
-       [?def :ast/name ?name]
+       [?def :db/ident ?name]
        [?def :db/doc ?doc]
        [?def :ast/line ?line]]
-     (db conn) "cljs.core.filter")
+     (db conn) :cljs.core.filter)
   
   ;; On what lines is the function 'map' used?
   (q '[:find ?line
@@ -204,5 +205,11 @@
       (db conn) child-rules)
    (map first)
    frequencies)
+
+  (q '[:find ?line
+       :where
+       [?e :ast/ns :bad-ns]
+       [?e :ast/line ?line]]
+     (db conn))
   
   )

@@ -125,14 +125,14 @@
 
    {:db/id #db/id[:db.part/db]
     :db/ident :ast/name
-    :db/valueType :db.type/string
+    :db/valueType :db.type/keyword
     :db/cardinality :db.cardinality/one
     :db/doc "name"
     :db.install/_attribute :db.part/db}
    
    {:db/id #db/id[:db.part/db]
     :db/ident :ast/ns
-    :db/valueType :db.type/string
+    :db/valueType :db.type/keyword
     :db/cardinality :db.cardinality/one
     :db/doc "namespace"
     :db.install/_attribute :db.part/db}
