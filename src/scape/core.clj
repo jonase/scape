@@ -15,13 +15,14 @@
   
   (d/transact conn schema)
   
+  ;; TODO: First time this is run it throws an exception?
   (doseq [ast (analyze-file "cljs/core.cljs")]
     (let [tdata (emit-transaction-data ast)]
       (d/transact conn tdata)))
   
   ;; how many transactions? i.e., top level forms
   (count (analyze-file "cljs/core.cljs"))
-  ;; 502
+  ;; 538
 
   ;; Same as above
   (count (q '[:find ?e
@@ -33,7 +34,7 @@
   (->> (analyze-file "cljs/core.cljs")
        (mapcat emit-transaction-data)
        count)
-  ;; 147171 facts about cljs.core!
+  ;; 134648 facts about cljs.core!
   
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
@@ -51,23 +52,22 @@
             [?t :ast/line ?line]]
           (db conn)))
   
-  ;; What form is on line 291?
+  ;; What form is on line 288?
   (q '[:find ?form
        :where
        [?op :ast/op]
-       [?op :ast/line 291]
+       [?op :ast/line 288]
        [?op :ast/form ?form]]
      (db conn))
   
   ;; Find documentation and line number
-  ;; Note, will be better with new unmunged names
   (q '[:find ?line ?doc
        :in $ ?name
        :where
        [?def :db/ident ?name]
        [?def :db/doc ?doc]
        [?def :ast/line ?line]]
-     (db conn) :cljs.core.filter)
+     (db conn) :cljs.core/map-indexed)
   
   ;; On what lines is the function 'map' used?
   (q '[:find ?line
@@ -75,16 +75,16 @@
        :where
        [?var :ast/op :ast.op/var]
        [?var :ast.var/local false]
-       [?var :ast/form ?sym]
+       [?var :ast/name ?sym]
        [?var :ast/line ?line]]
-     (db conn) "map")
+     (db conn) :cljs.core/map)
   
   ;; What are the most used local/var names?
   (->>  (q '[:find ?var ?sym
              :in $ ?local
              :where
              [?var :ast.var/local ?local]
-             [?var :ast/form ?sym]]
+             [?var :ast/name ?sym]]
            (db conn) false)
         (map second)
         frequencies
@@ -205,11 +205,5 @@
       (db conn) child-rules)
    (map first)
    frequencies)
-
-  (q '[:find ?line
-       :where
-       [?e :ast/ns :bad-ns]
-       [?e :ast/line ?line]]
-     (db conn))
   
   )

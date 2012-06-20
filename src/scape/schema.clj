@@ -31,6 +31,9 @@
     :db/ident :ast.op/let}
 
    {:db/id #db/id[:db.part/user]
+    :db/ident :ast.op/letfn}
+   
+   {:db/id #db/id[:db.part/user]
     :db/ident :ast.op/recur}
 
    {:db/id #db/id[:db.part/user]
