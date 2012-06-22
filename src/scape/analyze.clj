@@ -1,5 +1,6 @@
 (ns scape.analyze
-  (:require [cljs.analyzer :as a]
+  (:require [cljs.compiler]
+            [cljs.analyzer :as a]
             [clojure.java.io :as io]
             [clojure.walk :as walk]))
 

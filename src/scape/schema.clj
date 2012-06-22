@@ -4,85 +4,10 @@
   [;; Common
    {:db/id #db/id[:db.part/db -1]
     :db/ident :ast/op
-    :db/valueType :db.type/ref
+    :db/valueType :db.type/keyword
     :db/cardinality :db.cardinality/one
     :db/doc ":op"
     :db.install/_attribute :db.part/db}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/if}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/throw}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/try*}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/def}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/fn}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/do}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/let}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/letfn}
-   
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/recur}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/quote}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/new}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/set!}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/ns}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/deftype*}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/defrecord*}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/dot}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/js}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/invoke}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/var}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/map}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/vector}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/set}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/meta}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/constant}
-
-   {:db/id #db/id[:db.part/user]
-    :db/ident :ast.op/no-op}
 
    {:db/id #db/id[:db.part/db]
     :db/ident :ast/top-level

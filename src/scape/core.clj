@@ -15,7 +15,6 @@
   
   (d/transact conn schema)
   
-  ;; TODO: First time this is run it throws an exception?
   (doseq [ast (analyze-file "cljs/core.cljs")]
     (let [tdata (emit-transaction-data ast)]
       (d/transact conn tdata)))
@@ -34,13 +33,18 @@
   (->> (analyze-file "cljs/core.cljs")
        (mapcat emit-transaction-data)
        count)
-  ;; 134648 facts about cljs.core!
+  ;; 157916 facts about cljs.core!
   
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
               :where
               [?e :ast/op]]
             (db conn)))
+
+  ;; What ops are in use?
+  (q '[:find ?op
+       :where [_ :ast/op ?op]]
+     (db conn))
   
   ;; On what lines is the test part of an if statement a constant, and
   ;; what is that constant?
@@ -90,7 +94,7 @@
         frequencies
         (sort-by second)
         reverse)
-  
+
   ;; On what line is the return of a function method a constant and
   ;; what is the type of that constant?
   (q '[:find ?line ?type
@@ -188,8 +192,7 @@
        :where
        [?r :ast/op :ast.op/recur]
        [child ?p* ?r]
-       [?p* :ast/op ?op*]
-       [?op* :db/ident ?op]
+       [?p* :ast/op ?op]
        [?p* :ast/line ?line]]
      (db conn) child-rules)
 
@@ -200,8 +203,7 @@
         :where
         [?def :ast/op :ast.op/def]
         [child ?def ?init]
-        [?init :ast/op ?op*]
-        [?op* :db/ident ?op]]
+        [?init :ast/op ?op]]
       (db conn) child-rules)
    (map first)
    frequencies)

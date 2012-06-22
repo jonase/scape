@@ -55,8 +55,8 @@
                           init-tx)}))
 
 (defn- local? [var-node]
-  (let [var (:form var-node)]
-    (contains? (-> var-node :env :locals) var)))
+  (boolean (or (-> var-node :info :local)
+               (-> var-node :info :name namespace not))))
 
 (defmethod emit :var
   [ast]
@@ -175,4 +175,3 @@
          tx :transaction} (emit ast)]
     (cons [:db/add eid :ast/top-level true]
           tx)))
-
