@@ -5,14 +5,15 @@
             [scape.schema :refer [schema]]
             [clojure.pprint :refer [pprint]]))
 
+
 (comment
   (def uri "datomic:mem://ast")
   
   (d/delete-database uri)
   (d/create-database uri)
-  
+    
   (def conn (d/connect uri))
-  
+
   (d/transact conn schema)
   
   (doseq [ast (analyze-file "cljs/core.cljs")]
@@ -44,6 +45,13 @@
   ;; What ops are in use?
   (q '[:find ?op
        :where [_ :ast/op ?op]]
+     (db conn))
+
+  ;; Where are no-ops?
+  (q '[:find ?line
+       :where
+       [?e :ast/op :ast.op/no-op]
+       [?e :ast/line ?line]]
      (db conn))
   
   ;; On what lines is the test part of an if statement a constant, and
@@ -203,9 +211,19 @@
         :where
         [?def :ast/op :ast.op/def]
         [child ?def ?init]
-        [?init :ast/op ?op]]
+        [?init :ast/op ?op]
       (db conn) child-rules)
    (map first)
-   frequencies)
-  
+   frequencies))
+
+  ;; non-def top levels
+  (sort-by second
+           (q '[:find ?op ?line
+                :where
+                [?e :ast/op ?op]
+                [?e :ast/top-level]
+                [?e :ast/line ?line]
+                [(not= ?op :ast.op/def)]]
+              (db conn)))
+           
   )
