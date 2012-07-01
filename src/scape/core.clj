@@ -227,5 +227,39 @@
                 [?e :ast/line ?line]
                 [(not= ?op :ast.op/def)]]
               (db conn)))
-           
+
+  ;; What namespaces are used, and how many times?
+  (->> (q '[:find ?ns ?var
+            :where
+            [?var :ast/op :ast.op/var]
+            [?var :ast/name ?name]
+            [?var :ast.var/local false]
+            [(namespace ?name) ?ns]]
+          (db conn))
+       (map first)
+       frequencies
+       (sort-by second)
+       reverse)
+  ;; =>
+  '(["cljs.core" 3402]
+    ["cljs" 167]
+    ["goog" 99]
+    ["js" 70]
+    ["cljs.core.BitmapIndexedNode" 11]
+    ["cljs.core.PersistentVector" 11]
+    ["cljs.core.List" 8]
+    ["cljs.core.PersistentArrayMap" 7]
+    ["cljs.core.PersistentHashMap" 7]
+    ["goog.string" 6]
+    ["cljs.core.ObjMap" 6]
+    ["Math" 6]
+    ["goog.object" 5]
+    ["cljs.core.HashMap" 4]
+    ["cljs.core.Vector" 4]
+    ["cljs.core.PersistentTreeSet" 3]
+    ["cljs.core.PersistentTreeMap" 3]
+    ["goog.array" 3]
+    ["cljs.core.PersistentHashSet" 3]
+    ["cljs.core.PersistentQueue" 2])
+  
   )
