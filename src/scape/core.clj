@@ -195,26 +195,28 @@
        [?parent :ast.invoke/f ?child]]])
       
   ;;What op's are parents to recur?
-  (q '[:find ?op ?line
-       :in $ %
-       :where
-       [?r :ast/op :ast.op/recur]
-       [child ?p* ?r]
-       [?p* :ast/op ?op]
-       [?p* :ast/line ?line]]
-     (db conn) child-rules)
+  (->>
+   (q '[:find ?op ?p
+        :in $ %
+        :where
+        [?e :ast/op :ast.op/recur]
+        [child ?p ?e]
+        [?p :ast/op ?op]]
+      (db conn) child-rules)
+   (map first)
+   frequencies)
 
   ;; What op's are defined?
   (->> 
    (q '[:find ?op ?init
         :in $ %
         :where
-        [?def :ast/op :ast.op/def]
-        [child ?def ?init]
-        [?init :ast/op ?op]
+        [?e :ast/op :ast.op/def]
+        [child ?e ?init]
+        [?init :ast/op ?op]]
       (db conn) child-rules)
    (map first)
-   frequencies))
+   frequencies)
 
   ;; non-def top levels
   (sort-by second
