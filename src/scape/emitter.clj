@@ -6,9 +6,14 @@
 
 (defn- emit-common
   [entity-id {:keys [env op form] :as ast}]
-  [[:db/add entity-id :ast/op (keyword "ast.op" (name op))]
-   [:db/add entity-id :ast/line (or (:line env) -1)]
-   [:db/add entity-id :ast/form (pr-str form)]])
+  (remove nil?
+          [[:db/add entity-id :ast/op (keyword "ast.op" (name op))]
+           [:db/add entity-id :ast/ns (-> env :ns :name)]
+           (when-let [file (:file env)]
+             [:db/add entity-id :ast/file file])
+           (when-let [line (:line env)]
+             [:db/add entity-id :ast/line line])
+           [:db/add entity-id :ast/form (pr-str form)]]))
 
 (defmulti emit :op)
 
@@ -65,7 +70,8 @@
      :transaction (concat (emit-common entity-id ast)
                           [[:db/add entity-id :ast.var/local (local? ast)]
                            [:db/add entity-id :ast/name (-> ast :info :name keyword)]]
-                          (when-not (local? ast)
+                          ;; Drop, or rename to e.g :ast.var/ns
+                          #_(when-not (local? ast)
                             [[:db/add entity-id :ast/ns
                               (or (-> ast :info :ns keyword)
                                   :bad-ns)]]))})) ;; NOTE: due to possible "buggy" cljs code

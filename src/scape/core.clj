@@ -34,13 +34,24 @@
   (->> (analyze-file "cljs/core.cljs")
        (mapcat emit-transaction-data)
        count)
-  ;; 157916 facts about cljs.core!
+  ;; 183011 facts about cljs.core!
   
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
               :where
               [?e :ast/op]]
             (db conn)))
+
+  ;; What namespaces have been analyzed?
+  (q '[:find ?ns
+       :where
+       [_ :ast/ns ?ns]]
+     (db conn))
+
+  (q '[:find ?file
+       :where
+       [_ :ast/file ?file]]
+     (db conn))
 
   ;; What ops are in use?
   (q '[:find ?op

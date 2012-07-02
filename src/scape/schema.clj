@@ -48,7 +48,14 @@
     :db/ident :ast/line
     :db/valueType :db.type/long
     :db/cardinality :db.cardinality/one
-    :db/doc "Line number, or -1 if not available"
+    :db/doc "Line number"
+    :db.install/_attribute :db.part/db}
+
+   {:db/id #db/id[:db.part/db]
+    :db/ident :ast/file
+    :db/valueType :db.type/string
+    :db/cardinality :db.cardinality/one
+    :db/doc "file name"
     :db.install/_attribute :db.part/db}
 
    {:db/id #db/id[:db.part/db]
