@@ -16,7 +16,11 @@
 
   (d/transact conn schema)
 
-  (doseq [file ["cljs/core.cljs" "domina.cljs"]
+  (def files ["cljs/core.cljs" "domina.cljs" "domina/css.cljs"
+              "domina/events.cljs" "domina/support.cljs"
+              "domina/xpath.cljs"])
+
+  (doseq [file files
           ast (analyze-file file)]
     (let [tdata (emit-transaction-data ast)]
       (d/transact conn tdata)))
@@ -40,7 +44,8 @@
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
               :where
-              [?e :ast/op]]
+              [?e :ast/op]
+              [?e :ast/ns :cljs.core]]
             (db conn)))
 
   ;; What namespaces have been analyzed?
@@ -81,7 +86,8 @@
        :where
        [?op :ast/op]
        [?op :ast/line 288]
-       [?op :ast/form ?form]]
+       [?op :ast/form ?form]
+       [?op :ast/ns :domina]]
      (db conn))
   
   ;; Find documentation and line number
@@ -93,14 +99,15 @@
        [?def :ast/line ?line]]
      (db conn) :cljs.core/map-indexed)
   
-  ;; On what lines is the function 'map' used?
+  ;; On what lines (in domina) is the function 'map' used?
   (q '[:find ?line
        :in $ ?sym
        :where
        [?var :ast/op :var]
        [?var :ast.var/local false]
        [?var :ast/name ?sym]
-       [?var :ast/line ?line]]
+       [?var :ast/line ?line]
+       [?var :ast/ns :domina]]
      (db conn) :cljs.core/map)
   
   ;; What are the most used local/var names?
@@ -243,6 +250,7 @@
             [?var :ast/op :var]
             [?var :ast/name ?name]
             [?var :ast.var/local false]
+            [?var :ast/ns :cljs.core]
             [(namespace ?name) ?ns]]
           (db conn))
        (map first)
@@ -270,5 +278,18 @@
     ["goog.array" 3]
     ["cljs.core.PersistentHashSet" 3]
     ["cljs.core.PersistentQueue" 2])
+
+
+  ;; What vars from namespace x are used in namespace y?
+  (q '[:find ?var
+       :in $ ?x ?y
+       :where
+       [?e :ast/op :var]
+       [?e :ast/name ?var]
+       [?e :ast/ns ?y]
+       [(namespace ?var) ?ns-str]
+       [(keyword ?ns-str) ?x]]
+     (db conn) :cljs.core :domina.events)
+       
   
   )
