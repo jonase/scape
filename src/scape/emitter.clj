@@ -79,7 +79,7 @@
 
 ;; TODO: numbered statements or linked list?
 (defn emit-block [eid {:keys [statements ret]}]
-  (let [stmnt-tx-data (map emit statements)
+  (let [stmnt-tx-data (remove nil? (map emit statements))
         stmnt-ids (map :entity-id stmnt-tx-data)
         stmnt-txs (mapcat :transaction stmnt-tx-data)
         {ret-id :entity-id
@@ -145,7 +145,7 @@
   (let [entity-id (id)
         {fid :entity-id
          ftx :transaction} (emit f)
-        args-tx-data (map emit args)]
+        args-tx-data (remove nil? (map emit args))]
     {:entity-id entity-id
      :transaction (concat (emit-common entity-id ast)
                           [[:db/add entity-id :ast.invoke/f fid]]
@@ -157,17 +157,20 @@
 (defmethod emit :recur
   [{:keys [exprs] :as ast}]
   (let [entity-id (id)
-        args-tx-data (map emit exprs)]
+        args-tx-data (remove nil? (map emit exprs))]
     {:entity-id entity-id
      :transaction (concat (emit-common entity-id ast)
                           (map #(vector :db/add entity-id :ast/arg (:entity-id %))
                                args-tx-data)
                           (mapcat :transaction args-tx-data))}))
 
+;; CLJS #331
+(defmethod emit nil [_] nil)
+
 (defmethod emit :default
   [{:keys [op children form] :as ast}]
   (let [entity-id (id)
-        txdata (map emit children)
+        txdata (remove nil? (map emit children))
         tx (mapcat :transaction txdata)
         child-ids (map #(vector :db/add entity-id :ast/child (:entity-id %))
                        txdata)]

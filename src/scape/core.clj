@@ -15,8 +15,9 @@
   (def conn (d/connect uri))
 
   (d/transact conn schema)
-  
-  (doseq [ast (analyze-file "cljs/core.cljs")]
+
+  (doseq [file ["cljs/core.cljs" "domina.cljs"]
+          ast (analyze-file file)]
     (let [tdata (emit-transaction-data ast)]
       (d/transact conn tdata)))
   
@@ -233,7 +234,7 @@
                 [?e :ast/op ?op]
                 [?e :ast/top-level]
                 [?e :ast/line ?line]
-                [(not= ?op :ast.op/def)]]
+                [(not= ?op :def)]]
               (db conn)))
 
   ;; What namespaces are used, and how many times?
