@@ -125,18 +125,16 @@
        [?ret :ast/line ?line]]
      (db conn))
   
-  ;; Most used op's. Can this be combined into one query?
-  (sort-by second
-           (for [[op] (q '[:find ?op
-                           :where
-                           [?_ :ast/op ?op*]
-                           [?op* :db/ident ?op]]
-                         (db conn))]
-             [op (count (q '[:find ?e
-                             :in $ ?op
-                             :where
-                             [?e :ast/op ?op]]
-                           (db conn) op))]))
+  ;; Most used op's. 
+  (->> (q '[:find ?e ?op
+            :where
+            [?e :ast/op ?op]]
+          (db conn))
+       (map second)
+       frequencies
+       (sort-by second)
+       reverse)
+            
 
   ;; On what lines is a loop used?
   (q '[:find ?line
