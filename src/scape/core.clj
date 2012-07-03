@@ -61,7 +61,7 @@
   ;; Where are no-ops?
   (q '[:find ?line
        :where
-       [?e :ast/op :ast.op/no-op]
+       [?e :ast/op :no-op]
        [?e :ast/line ?line]]
      (db conn))
   
@@ -70,7 +70,7 @@
   (seq (q '[:find ?line ?form
             :where
             [?e :ast.if/test ?t]
-            [?t :ast/op :ast.op/constant]
+            [?t :ast/op :constant]
             [?t :ast/form ?form]
             [?t :ast/line ?line]]
           (db conn)))
@@ -96,7 +96,7 @@
   (q '[:find ?line
        :in $ ?sym
        :where
-       [?var :ast/op :ast.op/var]
+       [?var :ast/op :var]
        [?var :ast.var/local false]
        [?var :ast/name ?sym]
        [?var :ast/line ?line]]
@@ -118,10 +118,9 @@
   ;; what is the type of that constant?
   (q '[:find ?line ?type
        :where
-       ;;[?fn :ast/op :ast.op/fn]
        [?_ :ast.fn/method ?fnm]
        [?fnm :ast/ret ?ret]
-       [?ret :ast/op :ast.op/constant]
+       [?ret :ast/op :constant]
        [?ret :ast.constant/type ?type]
        [?ret :ast/line ?line]]
      (db conn))
@@ -142,7 +141,7 @@
   ;; On what lines is a loop used?
   (q '[:find ?line
        :where
-       [?let :ast/op :ast.op/let]
+       [?let :ast/op :let]
        [?let :ast.let/loop true]
        [?let :ast/line ?line]]
      (db conn))
@@ -150,14 +149,14 @@
   ;; How many invokations?
   (count (q '[:find ?invoke
               :where
-              [?invoke :ast/op :ast.op/invoke]]
+              [?invoke :ast/op :invoke]]
             (db conn)))
 
   ;; Enumerate the keywords used as function
   (q '[:find ?kw
        :where
        [?e :ast.invoke/f ?kw*]
-       [?kw* :ast/op :ast.op/constant]
+       [?kw* :ast/op :constant]
        [?kw* :ast/form ?kw]]
      (db conn))
 
@@ -210,7 +209,7 @@
    (q '[:find ?op ?p
         :in $ %
         :where
-        [?e :ast/op :ast.op/recur]
+        [?e :ast/op :recur]
         [child ?p ?e]
         [?p :ast/op ?op]]
       (db conn) child-rules)
@@ -222,7 +221,7 @@
    (q '[:find ?op ?init
         :in $ %
         :where
-        [?e :ast/op :ast.op/def]
+        [?e :ast/op :def]
         [child ?e ?init]
         [?init :ast/op ?op]]
       (db conn) child-rules)
@@ -242,7 +241,7 @@
   ;; What namespaces are used, and how many times?
   (->> (q '[:find ?ns ?var
             :where
-            [?var :ast/op :ast.op/var]
+            [?var :ast/op :var]
             [?var :ast/name ?name]
             [?var :ast.var/local false]
             [(namespace ?name) ?ns]]

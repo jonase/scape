@@ -7,7 +7,7 @@
 (defn- emit-common
   [entity-id {:keys [env op form] :as ast}]
   (remove nil?
-          [[:db/add entity-id :ast/op (keyword "ast.op" (name op))]
+          [[:db/add entity-id :ast/op op]
            [:db/add entity-id :ast/ns (-> env :ns :name)]
            (when-let [file (:file env)]
              [:db/add entity-id :ast/file file])
