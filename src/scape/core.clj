@@ -112,11 +112,12 @@
   
   ;; What are the most used local/var names?
   (->>  (q '[:find ?var ?sym
-             :in $ ?local
+             :in $ ?local ?ns
              :where
              [?var :ast.var/local ?local]
-             [?var :ast/name ?sym]]
-           (db conn) false)
+             [?var :ast/name ?sym]
+             [?var :ast/ns ?ns]]
+           (db conn) false :domina.events)
         (map second)
         frequencies
         (sort-by second)
@@ -279,17 +280,28 @@
     ["cljs.core.PersistentHashSet" 3]
     ["cljs.core.PersistentQueue" 2])
 
+  (def ns-rule
+    '[[[namespace ?var ?ns]
+       [(namespace ?var) ?ns-str]
+       [(keyword ?ns-str) ?ns]]])
 
   ;; What vars from namespace x are used in namespace y?
   (q '[:find ?var
-       :in $ ?x ?y
+       :in $ % ?x ?y
        :where
        [?e :ast/op :var]
        [?e :ast/name ?var]
        [?e :ast/ns ?y]
-       [(namespace ?var) ?ns-str]
-       [(keyword ?ns-str) ?x]]
-     (db conn) :cljs.core :domina.events)
+       [namespace ?var ?x]]
+     (db conn) ns-rule :cljs.core :domina.events)
        
-  
+  ;; Who's calling my namespace?
+  (q '[:find ?ns
+       :in $ % ?my-ns
+       :where
+       [?e :ast/name ?var]
+       [?e :ast/ns ?ns]
+       [namespace ?var ?my-ns]
+       [(not= ?ns ?my-ns)]]
+     (db conn) ns-rule :domina)
   )
