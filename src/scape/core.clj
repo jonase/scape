@@ -244,4 +244,15 @@
        [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
      (db conn) rules/namespace :domina)
+
+  ;; Who's using my fn (and on what line)?
+  (q '[:find ?ns ?line
+       :in $ % ?my-var
+       :where
+       [?var :ast/name ?my-var]
+       [?var :ast/line ?line]
+       [?var :ast/ns ?ns]
+       [namespace ?var ?my-ns]
+       [(not= ?ns ?my-ns)]]
+     (db conn) rules/namespace :cljs.core/filter)
   )
