@@ -255,7 +255,7 @@
        [?var :ast/ns ?ns]
        [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
-     (db conn) rules/namespace :domina)
+     (db conn) rules/namespace :clojure.string)
 
   ;; Who's using my fn (and on what line)?
   (q '[:find ?ns ?line
@@ -278,4 +278,28 @@
        [(not= ?ns ?my-ns)]
        [(not= ?ns nil)]]
      (db conn) rules/namespace :domina.css)
+
+  ;; Which function in core is used most (outside core itself)
+  (->> (q '[:find ?var ?var-name
+            :in $ %
+            :where
+            [?var :ast/op :var]
+            [?var :ast/name ?var-name]
+            [?var :ast/ns ?var-ns]
+            [namespace ?var :cljs.core]
+            [(not= ?var-ns :cljs.core)]]
+          (db conn)
+          rules/namespace)
+       (map second)
+       frequencies
+       (sort-by second)
+       reverse)
+;;  =>
+;;  ([:cljs.core/nth 172]
+;;   [:cljs.core/-lookup 61]
+;;   [:cljs.core/first 55]
+;;   [:cljs.core/count 48]
+;;   [:cljs.core/seq 42]
+;;   ...)
+    
   )
