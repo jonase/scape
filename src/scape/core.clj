@@ -16,8 +16,21 @@
 
   (d/transact conn schema)
 
-  (def files ["cljs/core.cljs" "domina.cljs" "domina/css.cljs"
-              "domina/events.cljs" "domina/support.cljs"
+  (def files ["cljs/core.cljs"
+              "cljs/reader.cljs"
+              "clojure/set.cljs"
+              "clojure/string.cljs"
+              "clojure/walk.cljs"
+              "clojure/zip.cljs"
+              "clojure/core/reducers.cljs"
+              "clojure/browser/dom.cljs"
+              "clojure/browser/event.cljs"
+              "clojure/browser/net.cljs"
+              "clojure/browser/repl.cljs"
+              "domina.cljs"
+              "domina/css.cljs"
+              "domina/events.cljs"
+              "domina/support.cljs"
               "domina/xpath.cljs"])
 
   (doseq [file files
@@ -217,7 +230,6 @@
             [?var :ast/op :var]
             [?var :ast/name ?name]
             [?var :ast.var/local false]
-            [?var :ast/ns :cljs.core]
             [(namespace ?name) ?ns]]
           (db conn))
        (map first)
