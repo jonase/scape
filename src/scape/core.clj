@@ -3,8 +3,8 @@
             [scape.emitter :refer [emit-transaction-data]]
             [scape.analyze :refer [analyze-file deep-dissoc]]
             [scape.schema :refer [schema]]
+            [scape.rules :as rules]
             [clojure.pprint :refer [pprint]]))
-
 
 (comment
   (def uri "datomic:mem://ast")
@@ -177,40 +177,6 @@
                 [?var :ast/name ?name]]
               (db conn)))
 
-  (def child-rules
-    '[[(child ?parent ?child)
-       [?parent :ast/op]
-       [?parent :ast/statement ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/op]
-       [?parent :ast/ret ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/child ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/arg ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.if/test ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.if/then ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.if/else ?child]]
-      [(child ?parent ?child)
-       [?parent :ast/op]
-       [?parent :ast/init ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.throw/expr ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.fn/method ?method]
-       [?method :ast/statement ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.fn/method ?method]
-       [?method :ast/ret ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.let/binding ?binding]
-       [?binding :ast/init ?child]]
-      [(child ?parent ?child)
-       [?parent :ast.invoke/f ?child]]])
-      
   ;;What op's are parents to recur?
   (->>
    (q '[:find ?op ?p
@@ -219,7 +185,7 @@
         [?e :ast/op :recur]
         [child ?p ?e]
         [?p :ast/op ?op]]
-      (db conn) child-rules)
+      (db conn) rules/child)
    (map first)
    frequencies)
 
@@ -231,7 +197,7 @@
         [?e :ast/op :def]
         [child ?e ?init]
         [?init :ast/op ?op]]
-      (db conn) child-rules)
+      (db conn) rules/child)
    (map first)
    frequencies)
 
@@ -258,50 +224,24 @@
        frequencies
        (sort-by second)
        reverse)
-  ;; =>
-  '(["cljs.core" 3402]
-    ["cljs" 167]
-    ["goog" 99]
-    ["js" 70]
-    ["cljs.core.BitmapIndexedNode" 11]
-    ["cljs.core.PersistentVector" 11]
-    ["cljs.core.List" 8]
-    ["cljs.core.PersistentArrayMap" 7]
-    ["cljs.core.PersistentHashMap" 7]
-    ["goog.string" 6]
-    ["cljs.core.ObjMap" 6]
-    ["Math" 6]
-    ["goog.object" 5]
-    ["cljs.core.HashMap" 4]
-    ["cljs.core.Vector" 4]
-    ["cljs.core.PersistentTreeSet" 3]
-    ["cljs.core.PersistentTreeMap" 3]
-    ["goog.array" 3]
-    ["cljs.core.PersistentHashSet" 3]
-    ["cljs.core.PersistentQueue" 2])
-
-  (def ns-rule
-    '[[[namespace ?var ?ns]
-       [(namespace ?var) ?ns-str]
-       [(keyword ?ns-str) ?ns]]])
 
   ;; What vars from namespace x are used in namespace y?
-  (q '[:find ?var
+  (q '[:find ?var-name
        :in $ % ?x ?y
        :where
-       [?e :ast/op :var]
-       [?e :ast/name ?var]
-       [?e :ast/ns ?y]
+       [?var :ast/op :var]
+       [?var :ast/name ?var-name]
+       [?var :ast/ns ?y]
        [namespace ?var ?x]]
-     (db conn) ns-rule :cljs.core :domina.events)
-       
+     (db conn) rules/namespace :cljs.core :domina.events)
+  
   ;; Who's calling my namespace?
   (q '[:find ?ns
        :in $ % ?my-ns
        :where
-       [?e :ast/name ?var]
-       [?e :ast/ns ?ns]
+       [?var :ast/op :var]
+       [?var :ast/ns ?ns]
        [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
-     (db conn) ns-rule :domina)
+     (db conn) rules/namespace :domina)
   )
