@@ -255,4 +255,15 @@
        [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
      (db conn) rules/namespace :cljs.core/filter)
+
+  ;; What vars (from other namespaces) are used from my ns?
+  (q '[:find ?var-name
+       :in $ % ?my-ns
+       :where
+       [?var :ast/name ?var-name]
+       [?var :ast/ns ?my-ns]
+       [namespace ?var ?ns]
+       [(not= ?ns ?my-ns)]
+       [(not= ?ns nil)]]
+     (db conn) rules/namespace :domina.css)
   )
