@@ -35,8 +35,21 @@
     [(child ?parent ?child)
      [?parent :ast.invoke/f ?child]]])
 
-  (def namespace
-    '[[[namespace ?var ?ns]
-       [?var :ast/name ?name]
-       [(namespace ?name) ?ns-str]
-       [(keyword ?ns-str) ?ns]]])
+(def namespace
+  '[[[namespace ?var ?ns]
+     [?var :ast/name ?name]
+     [(namespace ?name) ?ns-str]
+     [(keyword ?ns-str) ?ns]]])
+
+(def descendant 
+  '[[[descendant ?r ?d]
+     [child ?r ?d]]
+    [[descendant ?r ?d]
+     [child ?r ?x]
+     [descendant ?x ?d]]])
+
+(def top-level
+  '[[[top-level ?tl ?e]
+     [?t1 :ast/top-level true]
+     [descendant ?t1 ?e]]])
+

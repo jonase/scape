@@ -302,4 +302,12 @@
 ;;   [:cljs.core/seq 42]
 ;;   ...)
     
+  (q '[:find ?a
+       :in $ %
+       :where
+       [?e :db/ident :cljs.core/map]
+       [descendant ?e ?a]]
+     (db conn) (concat rules/descendant
+                       rules/child))
+
   )
