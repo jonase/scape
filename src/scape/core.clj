@@ -40,21 +40,11 @@
         (println "AST transaction complete.")
         (db conn)))))
   
-  ;; how many transactions? i.e., top level forms
-  (count (analyze-file "cljs/core.cljs"))
-  ;; 538
-
-  ;; Same as above
+  ;; How many top-level forms?
   (count (q '[:find ?e
               :where
               [?e :ast/top-level true]]
             ast-db))
-  
-  ;; How many datoms is the above?
-  (->> (analyze-file "cljs/core.cljs")
-       (mapcat emit-transaction-data)
-       count)
-  ;; 183011 facts about cljs.core!
   
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
@@ -69,11 +59,6 @@
        [_ :ast/ns ?ns]]
      ast-db)
 
-  (q '[:find ?file
-       :where
-       [_ :ast/file ?file]]
-     ast-db)
-
   ;; What ops are in use?
   (q '[:find ?op
        :where [_ :ast/op ?op]]
@@ -85,16 +70,6 @@
        [?e :ast/op :no-op]
        [?e :ast/line ?line]]
      ast-db)
-  
-  ;; On what lines is the test part of an if statement a constant, and
-  ;; what is that constant?
-  (seq (q '[:find ?line ?form
-            :where
-            [?e :ast.if/test ?t]
-            [?t :ast/op :constant]
-            [?t :ast/form ?form]
-            [?t :ast/line ?line]]
-          ast-db))
   
   ;; What form is on line 288?
   (q '[:find ?form
@@ -142,7 +117,7 @@
   ;; what is the type of that constant?
   (q '[:find ?line ?type
        :where
-       [?_ :ast.fn/method ?fnm]
+       [_ :ast.fn/method ?fnm]
        [?fnm :ast/ret ?ret]
        [?ret :ast/op :constant]
        [?ret :ast.constant/type ?type]
