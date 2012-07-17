@@ -7,15 +7,6 @@
             [clojure.pprint :refer [pprint]]))
 
 (comment
-  (def uri "datomic:mem://ast")
-  
-  (d/delete-database uri)
-  (d/create-database uri)
-    
-  (def conn (d/connect uri))
-
-  (d/transact conn schema)
-
   (def files ["cljs/core.cljs"
               "cljs/reader.cljs"
               "clojure/set.cljs"
@@ -33,10 +24,21 @@
               "domina/support.cljs"
               "domina/xpath.cljs"])
 
-  (doseq [file files
-          ast (analyze-file file)]
-    (let [tdata (emit-transaction-data ast)]
-      (d/transact conn tdata)))
+  (def ast-db
+    (let [uri "datomic:mem://ast"]
+      (when (d/delete-database uri)
+        (println uri "deleted."))
+      (when (d/create-database uri)
+        (println uri "created.")
+      (let [conn (d/connect uri)]
+        (d/transact conn schema)
+        (println "Schema transaction complete.")
+        (doseq [file files
+                ast (analyze-file file)]
+          (let [tdata (emit-transaction-data ast)]
+            (d/transact conn tdata)))
+        (println "AST transaction complete.")
+        (db conn)))))
   
   ;; how many transactions? i.e., top level forms
   (count (analyze-file "cljs/core.cljs"))
@@ -46,7 +48,7 @@
   (count (q '[:find ?e
               :where
               [?e :ast/top-level true]]
-            (db conn)))
+            ast-db))
   
   ;; How many datoms is the above?
   (->> (analyze-file "cljs/core.cljs")
@@ -59,30 +61,30 @@
               :where
               [?e :ast/op]
               [?e :ast/ns :cljs.core]]
-            (db conn)))
+            ast-db))
 
   ;; What namespaces have been analyzed?
   (q '[:find ?ns
        :where
        [_ :ast/ns ?ns]]
-     (db conn))
+     ast-db)
 
   (q '[:find ?file
        :where
        [_ :ast/file ?file]]
-     (db conn))
+     ast-db)
 
   ;; What ops are in use?
   (q '[:find ?op
        :where [_ :ast/op ?op]]
-     (db conn))
+     ast-db)
 
   ;; Where are no-ops?
   (q '[:find ?line
        :where
        [?e :ast/op :no-op]
        [?e :ast/line ?line]]
-     (db conn))
+     ast-db)
   
   ;; On what lines is the test part of an if statement a constant, and
   ;; what is that constant?
@@ -92,7 +94,7 @@
             [?t :ast/op :constant]
             [?t :ast/form ?form]
             [?t :ast/line ?line]]
-          (db conn)))
+          ast-db))
   
   ;; What form is on line 288?
   (q '[:find ?form
@@ -101,7 +103,7 @@
        [?op :ast/line 288]
        [?op :ast/form ?form]
        [?op :ast/ns :domina]]
-     (db conn))
+     ast-db)
   
   ;; Find documentation and line number
   (q '[:find ?line ?doc
@@ -110,7 +112,7 @@
        [?def :db/ident ?name]
        [?def :db/doc ?doc]
        [?def :ast/line ?line]]
-     (db conn) :cljs.core/map-indexed)
+     ast-db :cljs.core/map-indexed)
   
   ;; On what lines (in domina) is the function 'map' used?
   (q '[:find ?line
@@ -121,7 +123,7 @@
        [?var :ast/name ?sym]
        [?var :ast/line ?line]
        [?var :ast/ns :domina]]
-     (db conn) :cljs.core/map)
+     ast-db :cljs.core/map)
   
   ;; What are the most used local/var names?
   (->>  (q '[:find ?var ?sym
@@ -130,7 +132,7 @@
              [?var :ast.var/local ?local]
              [?var :ast/name ?sym]
              [?var :ast/ns ?ns]]
-           (db conn) false :domina.events)
+           ast-db false :domina.events)
         (map second)
         frequencies
         (sort-by second)
@@ -145,13 +147,13 @@
        [?ret :ast/op :constant]
        [?ret :ast.constant/type ?type]
        [?ret :ast/line ?line]]
-     (db conn))
+     ast-db)
   
   ;; Most used op's. 
   (->> (q '[:find ?e ?op
             :where
             [?e :ast/op ?op]]
-          (db conn))
+          ast-db)
        (map second)
        frequencies
        (sort-by second)
@@ -164,13 +166,13 @@
        [?let :ast/op :let]
        [?let :ast.let/loop true]
        [?let :ast/line ?line]]
-     (db conn))
+     ast-db)
 
   ;; How many invokations?
   (count (q '[:find ?invoke
               :where
               [?invoke :ast/op :invoke]]
-            (db conn)))
+            ast-db))
 
   ;; Enumerate the keywords used as function
   (q '[:find ?kw
@@ -178,7 +180,7 @@
        [?e :ast.invoke/f ?kw*]
        [?kw* :ast/op :constant]
        [?kw* :ast/form ?kw]]
-     (db conn))
+     ast-db)
 
   ;; Any local functions used?
   (sort-by second
@@ -188,7 +190,7 @@
                 [?var :ast.var/local true]
                 [?var :ast/line ?line]
                 [?var :ast/name ?name]]
-              (db conn)))
+              ast-db))
 
   ;;What op's are parents to recur?
   (->>
@@ -198,7 +200,7 @@
         [?e :ast/op :recur]
         [child ?p ?e]
         [?p :ast/op ?op]]
-      (db conn) rules/child)
+      ast-db rules/child)
    (map first)
    frequencies)
 
@@ -210,7 +212,7 @@
         [?e :ast/op :def]
         [child ?e ?init]
         [?init :ast/op ?op]]
-      (db conn) rules/child)
+      ast-db rules/child)
    (map first)
    frequencies)
 
@@ -222,7 +224,7 @@
                 [?e :ast/top-level]
                 [?e :ast/line ?line]
                 [(not= ?op :def)]]
-              (db conn)))
+              ast-db))
 
   ;; What namespaces are used, and how many times?
   (->> (q '[:find ?ns ?var
@@ -231,7 +233,7 @@
             [?var :ast/name ?name]
             [?var :ast.var/local false]
             [(namespace ?name) ?ns]]
-          (db conn))
+          ast-db)
        (map first)
        frequencies
        (sort-by second)
@@ -245,7 +247,7 @@
        [?var :ast/name ?var-name]
        [?var :ast/ns ?y]
        [namespace ?var ?x]]
-     (db conn) rules/namespace :cljs.core :domina.events)
+     ast-db rules/namespace :cljs.core :domina.events)
   
   ;; Who's calling my namespace?
   (q '[:find ?ns
@@ -255,7 +257,7 @@
        [?var :ast/ns ?ns]
        [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
-     (db conn) rules/namespace :clojure.string)
+     ast-db rules/namespace :clojure.string)
 
   ;; Who's using my fn (and on what line)?
   (q '[:find ?ns ?line
@@ -266,7 +268,7 @@
        [?var :ast/ns ?ns]
        [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
-     (db conn) rules/namespace :cljs.core/filter)
+     ast-db rules/namespace :cljs.core/filter)
 
   ;; What vars (from other namespaces) are used from my ns?
   (q '[:find ?var-name
@@ -277,7 +279,7 @@
        [namespace ?var ?ns]
        [(not= ?ns ?my-ns)]
        [(not= ?ns nil)]]
-     (db conn) rules/namespace :domina.css)
+     ast-db rules/namespace :domina.css)
 
   ;; Which function in core is used most (outside core itself)
   (->> (q '[:find ?var ?var-name
@@ -288,26 +290,19 @@
             [?var :ast/ns ?var-ns]
             [namespace ?var :cljs.core]
             [(not= ?var-ns :cljs.core)]]
-          (db conn)
+          ast-db
           rules/namespace)
        (map second)
        frequencies
        (sort-by second)
        reverse)
-;;  =>
-;;  ([:cljs.core/nth 172]
-;;   [:cljs.core/-lookup 61]
-;;   [:cljs.core/first 55]
-;;   [:cljs.core/count 48]
-;;   [:cljs.core/seq 42]
-;;   ...)
     
   (q '[:find ?a
        :in $ %
        :where
        [?e :db/ident :cljs.core/map]
        [descendant ?e ?a]]
-     (db conn) (concat rules/descendant
-                       rules/child))
+     ast-db (concat rules/descendant
+                    rules/child))
 
   )
