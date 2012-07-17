@@ -57,3 +57,15 @@
   '[[[form ?e ?f]
      [?e :ast/form ?fs]
      [(read-string ?fs) ?f]]])
+
+(def type
+  '[[[type ?e ?t]
+     [?e :ast.constant/type ?t]]
+    [[type ?e ?t]
+     ;[?e :ast/op]
+     [?e :ast/ret ?r]
+     [type ?r ?t]]
+    [[type ?e ?t]
+     [?e :ast.fn/method ?m]
+     [?m :ast/ret ?r]
+     [type ?r ?t]]])

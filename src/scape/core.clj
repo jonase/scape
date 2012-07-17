@@ -114,17 +114,6 @@
         (sort-by second)
         reverse)
 
-  ;; On what line is the return of a function method a constant and
-  ;; what is the type of that constant?
-  (q '[:find ?line ?type
-       :where
-       [_ :ast.fn/method ?fnm]
-       [?fnm :ast/ret ?ret]
-       [?ret :ast/op :constant]
-       [?ret :ast.constant/type ?type]
-       [?ret :ast/line ?line]]
-     ast-db)
-  
   ;; Most used op's. 
   (->> (q '[:find ?e ?op
             :where
@@ -281,4 +270,23 @@
      ast-db (concat rules/descendant
                     rules/child))
 
+  ;; What op's can we figure out the type of?
+  (q '[:find ?op
+       :in $ %
+       :where
+       [?e :ast/op ?op]
+       [type ?e _]]
+     ast-db rules/type)
+
+  ;; Enumerate type/op/line/ns of known types
+  (seq (q '[:find ?type ?op ?line ?ns
+            :in $ %
+            :where
+            [?e :ast/op ?op]
+            [?e :ast/line ?line]
+            [?e :ast/ns ?ns]
+            [type ?e ?type]]
+          ast-db rules/type))
+       
+  
   )
