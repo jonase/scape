@@ -53,3 +53,7 @@
      [?t1 :ast/top-level true]
      [descendant ?t1 ?e]]])
 
+(def form
+  '[[[form ?e ?f]
+     [?e :ast/form ?fs]
+     [(read-string ?fs) ?f]]])

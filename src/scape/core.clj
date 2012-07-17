@@ -71,15 +71,16 @@
        [?e :ast/line ?line]]
      ast-db)
   
-  ;; What form is on line 288?
+  ;; What forms are on line 288?
   (q '[:find ?form
+       :in $ %
        :where
        [?op :ast/op]
        [?op :ast/line 288]
-       [?op :ast/form ?form]
+       [form ?op ?form]
        [?op :ast/ns :domina]]
-     ast-db)
-  
+     ast-db rules/form)
+
   ;; Find documentation and line number
   (q '[:find ?line ?doc
        :in $ ?name
