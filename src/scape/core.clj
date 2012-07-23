@@ -280,5 +280,18 @@
             [type ?e ?type]]
           ast-db rules/type))
        
+  ;; What functions does ?my-fn invoke?
+  (q '[:find ?fn-name
+       :in $ % ?my-fn
+       :where
+       [?def :db/ident ?my-fn]
+       [descendant ?def ?invoke]
+       [?invoke :ast/op :invoke]
+       [?invoke :ast.invoke/f ?f]
+       [?f :ast.var/local false]
+       [?f :ast/name ?fn-name]]
+     ast-db rules/descendant :cljs.core/map)
+
+  
   
   )
