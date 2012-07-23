@@ -292,6 +292,39 @@
        [?f :ast/name ?fn-name]]
      ast-db rules/descendant :cljs.core/map)
 
-  
+  ;; Transitive var dependency
+  ;; Could be used for tree shaking?
+  (q '[:find ?var-name
+       :in $ % ?my-fn
+       :where
+       [?def :db/ident ?my-fn]
+       [transitive-var-dep ?def ?var]
+       [?var :ast/name ?var-name]
+       ]
+     ast-db
+     (concat rules/descendant
+             rules/transitive-var-dep)
+     :cljs.core/map)
+
+  ;;=>
+  ;; #<HashSet [[:cljs.core/chunk-append],
+  ;;            [:cljs.core/seq],
+  ;;            [:cljs.core/rest],
+  ;;            [:cljs.core/chunk],
+  ;;            [:cljs.core/every?],
+  ;;            [:cljs.core/conj],
+  ;;            [:cljs.core/chunk-buffer],
+  ;;            [:cljs.core/first],
+  ;;            [:cljs.core/cons],
+  ;;            [:cljs.core/chunk-cons],
+  ;;            [:cljs.core/apply],
+  ;;            [:cljs.core/count],
+  ;;            [:cljs.core/-nth],
+  ;;            [:cljs.core/chunk-rest],
+  ;;            [:cljs.core/chunked-seq?],
+  ;;            [:cljs.core/chunk-first],
+  ;;            [:cljs.core/identity],
+  ;;            [:cljs.core/LazySeq]]>
+       
   
   )
