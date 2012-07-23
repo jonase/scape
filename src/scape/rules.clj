@@ -1,5 +1,5 @@
 (ns scape.rules
-  (:refer-clojure :exclude [namespace]))
+  (:refer-clojure :exclude [namespace type]))
 
 (def child
   '[[(child ?parent ?child)

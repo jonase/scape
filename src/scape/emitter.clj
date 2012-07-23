@@ -82,11 +82,11 @@
 ;; Note: when parent-id == entity-id this block is a 'direct child', e.g.,
 ;; :do or :let. Otherwise e.g., :fn
 (defn emit-block [parent-id eid {:keys [statements ret]}]
-  (let [stmnt-tx-data (map emit statements)
+  (let [stmnt-tx-data (map #(emit parent-id %) statements)
         stmnt-ids (map :entity-id stmnt-tx-data)
         stmnt-txs (mapcat :transaction stmnt-tx-data)
         {ret-id :entity-id
-         ret-tx :transaction} (emit ret)]
+         ret-tx :transaction} (emit parent-id ret)]
     (concat (map #(vector :db/add eid :ast/statement %) stmnt-ids)
             stmnt-txs
             [[:db/add eid :ast/ret ret-id]]
@@ -179,6 +179,6 @@
 
 (defn emit-transaction-data [ast]
   (let [{eid :entity-id
-         tx :transaction} (emit ast)]
+         tx :transaction} (emit nil ast)]
     (cons [:db/add eid :ast/top-level true]
           tx)))
