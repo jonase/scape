@@ -261,14 +261,6 @@
        frequencies
        (sort-by second)
        reverse)
-    
-  (q '[:find ?a
-       :in $ %
-       :where
-       [?e :db/ident :cljs.core/map]
-       [descendant ?e ?a]]
-     ast-db (concat rules/descendant
-                    rules/child))
 
   ;; What op's can we figure out the type of?
   (q '[:find ?op

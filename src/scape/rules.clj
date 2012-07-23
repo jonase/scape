@@ -43,9 +43,9 @@
 
 (def descendant 
   '[[[descendant ?r ?d]
-     [child ?r ?d]]
+     [?r :ast/child ?d]]
     [[descendant ?r ?d]
-     [child ?r ?x]
+     [?r :ast/child ?x]
      [descendant ?x ?d]]])
 
 (def top-level
