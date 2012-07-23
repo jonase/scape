@@ -5,29 +5,30 @@
   (tempid :db.part/user))
 
 (defn- emit-common
-  [entity-id {:keys [env op form] :as ast}]
-  (remove nil?
-          [[:db/add entity-id :ast/op op]
+  [parent-id entity-id {:keys [env op form] :as ast}]
+  (concat [[:db/add entity-id :ast/op op]
            [:db/add entity-id :ast/ns (-> env :ns :name)]
-           (when-let [file (:file env)]
-             [:db/add entity-id :ast/file file])
-           (when-let [line (:line env)]
-             [:db/add entity-id :ast/line line])
-           [:db/add entity-id :ast/form (pr-str form)]]))
+           [:db/add entity-id :ast/form (pr-str form)]]
+          (when parent-id
+            [[:db/add parent-id :ast/child entity-id]])
+          (when-let [line (:line env)]
+            [[:db/add entity-id :ast/line line]])))
 
-(defmulti emit :op)
+(defmulti emit
+  (fn [parent-id expr-obj]
+    (:op expr-obj)))
 
 (defmethod emit :if
-  [{:keys [test then else] :as ast}]
+  [parent-id {:keys [test then else] :as ast}]
   (let [entity-id (id)
         {test-id :entity-id
-         test-tx :transaction} (emit test)
+         test-tx :transaction} (emit entity-id test)
         {then-id :entity-id
-         then-tx :transaction} (emit then)
+         then-tx :transaction} (emit entity-id then)
         {else-id :entity-id
-         else-tx :transaction} (emit else)]
+         else-tx :transaction} (emit entity-id else)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           [[:db/add entity-id :ast.if/test test-id]
                            [:db/add entity-id :ast.if/then then-id]
                            [:db/add entity-id :ast.if/else else-id]]
@@ -36,22 +37,22 @@
                           else-tx)}))
 
 (defmethod emit :throw
-  [{throw-expr :throw :as ast}]
+  [parent-id {throw-expr :throw :as ast}]
   (let [entity-id (id)
         {throw-id :entity-id
-         throw-tx :transaction} (emit throw-expr)]
+         throw-tx :transaction} (emit entity-id throw-expr)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           [[:db/add entity-id :ast.throw/expr throw-id]]
                           throw-tx)}))
 
 (defmethod emit :def
-  [{:keys [name init doc] :as ast}]
+  [parent-id {:keys [name init doc] :as ast}]
   (let [entity-id (id)
         {init-id :entity-id
-         init-tx :transaction} (when init (emit init))]
+         init-tx :transaction} (when init (emit entity-id init))]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           (when init
                             [[:db/add entity-id :ast/init init-id]])
                           (when doc
@@ -64,10 +65,10 @@
                (-> var-node :info :name namespace not))))
 
 (defmethod emit :var
-  [ast]
+  [parent-id ast]
   (let [entity-id (id)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           [[:db/add entity-id :ast.var/local (local? ast)]
                            [:db/add entity-id :ast/name (-> ast :info :name keyword)]]
                           ;; Drop, or rename to e.g :ast.var/ns
@@ -78,7 +79,9 @@
                                                   ;; e.g. a.state instead of (.-state a)
 
 ;; TODO: numbered statements or linked list?
-(defn emit-block [eid {:keys [statements ret]}]
+;; Note: when parent-id == entity-id this block is a 'direct child', e.g.,
+;; :do or :let. Otherwise e.g., :fn
+(defn emit-block [parent-id eid {:keys [statements ret]}]
   (let [stmnt-tx-data (map emit statements)
         stmnt-ids (map :entity-id stmnt-tx-data)
         stmnt-txs (mapcat :transaction stmnt-tx-data)
@@ -90,64 +93,65 @@
             ret-tx)))
 
 (defn emit-fn-method
-  [eid {:keys [variadic max-fixed-arity] :as method}]
+  [parent-id eid {:keys [variadic max-fixed-arity] :as method}]
   (let [method-id (id)]
     (concat [[:db/add eid :ast.fn/method method-id]
              [:db/add method-id :ast.fn/variadic variadic]
              [:db/add method-id :ast.fn/fixed-arity max-fixed-arity]]
-            (emit-block method-id method))))
+            (emit-block parent-id method-id method))))
 
 (defmethod emit :fn
-  [{:keys [methods] :as ast}]
+  [parent-id {:keys [methods] :as ast}]
   (let [entity-id (id)
-        method-txs (mapcat #(emit-fn-method entity-id %) methods)]
+        method-txs (mapcat #(emit-fn-method parent-id entity-id %) methods)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           method-txs)}))
     
-(defmethod emit :do [ast]
+(defmethod emit :do
+  [parent-id ast]
   (let [entity-id (id)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
-                          (emit-block entity-id ast))}))
+     :transaction (concat (emit-common parent-id entity-id ast)
+                          (emit-block entity-id entity-id ast))}))
 
 (defmethod emit :constant
-  [{:keys [form] :as ast}]
+  [parent-id {:keys [form] :as ast}]
   (let [entity-id (id)
         form-type (pr-str (type form))]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           [[:db/add entity-id :ast.constant/type form-type]])}))
 
-(defn- emit-binding [eid {:keys [name init]}]
+(defn- emit-binding [parent-id eid {:keys [name init]}]
   (let [binding-id (id)
         {init-id :entity-id
-         init-tx :transaction} (emit init)]
+         init-tx :transaction} (emit parent-id init)]
     (concat [[:db/add eid :ast.let/binding binding-id]
              [:db/add binding-id :ast/name (keyword name)]
              [:db/add binding-id :ast/init init-id]]
             init-tx)))
 
-(defn- emit-bindings [eid bindings]
-  (mapcat #(emit-binding eid %) bindings))
+(defn- emit-bindings [parent-id eid bindings]
+  (mapcat #(emit-binding parent-id eid %) bindings))
 
 (defmethod emit :let
-  [{:keys [loop bindings] :as ast}]
+  [parent-id {:keys [loop bindings] :as ast}]
   (let [entity-id (id)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
-                          (emit-bindings entity-id bindings)
-                          (emit-block entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
+                          (emit-bindings entity-id entity-id bindings)
+                          (emit-block entity-id entity-id ast)
                           [[:db/add entity-id :ast.let/loop loop]])}))
 
 (defmethod emit :invoke
-  [{:keys [f args] :as ast}]
+  [parent-id {:keys [f args] :as ast}]
   (let [entity-id (id)
         {fid :entity-id
-         ftx :transaction} (emit f)
-        args-tx-data (map emit args)]
+         ftx :transaction} (emit entity-id f)
+        args-tx-data (map #(emit entity-id %) args)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           [[:db/add entity-id :ast.invoke/f fid]]
                           ftx
                           (map #(vector :db/add entity-id :ast/arg (:entity-id %))
@@ -155,25 +159,22 @@
                           (mapcat :transaction args-tx-data))}))
 
 (defmethod emit :recur
-  [{:keys [exprs] :as ast}]
+  [parent-id {:keys [exprs] :as ast}]
   (let [entity-id (id)
-        args-tx-data (map emit exprs)]
+        args-tx-data (map #(emit entity-id %) exprs)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
+     :transaction (concat (emit-common parent-id entity-id ast)
                           (map #(vector :db/add entity-id :ast/arg (:entity-id %))
                                args-tx-data)
                           (mapcat :transaction args-tx-data))}))
 
 (defmethod emit :default
-  [{:keys [op children form] :as ast}]
+  [parent-id {:keys [op children form] :as ast}]
   (let [entity-id (id)
-        txdata (map emit children)
-        tx (mapcat :transaction txdata)
-        child-ids (map #(vector :db/add entity-id :ast/child (:entity-id %))
-                       txdata)]
+        txdata (map #(emit entity-id %) children)
+        tx (mapcat :transaction txdata)]
     {:entity-id entity-id
-     :transaction (concat (emit-common entity-id ast)
-                          child-ids
+     :transaction (concat (emit-common parent-id entity-id ast)
                           tx)}))
 
 (defn emit-transaction-data [ast]
