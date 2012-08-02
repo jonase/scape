@@ -49,8 +49,8 @@
   ;; How many ast nodes are there in core.cljs?
   (count (q '[:find ?e
               :where
-              [?e :ast/op]
-              [?e :ast/ns :cljs.core]]
+              [?e :ast/ns :cljs.core]
+              [?e :ast/op]]
             ast-db))
 
   ;; What namespaces have been analyzed?
@@ -160,12 +160,11 @@
   ;;What op's are parents to recur?
   (->>
    (q '[:find ?op ?p
-        :in $ %
         :where
         [?e :ast/op :recur]
-        [child ?p ?e]
+        [?p :ast/child ?e]
         [?p :ast/op ?op]]
-      ast-db rules/child)
+      ast-db)
    (map first)
    frequencies)
 
@@ -175,9 +174,9 @@
         :in $ %
         :where
         [?e :ast/op :def]
-        [child ?e ?init]
+        [?e :ast/child ?init]
         [?init :ast/op ?op]]
-      ast-db rules/child)
+      ast-db)
    (map first)
    frequencies)
 

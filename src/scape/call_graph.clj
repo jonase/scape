@@ -11,12 +11,12 @@
        :where
        [?e :db/ident ?source]
        [?e :ast/ns :domina]
+       [descendant ?e ?d]
        [?d :ast/op :var]
        [?d :ast.var/local false]
        [namespace ?d :domina]
-       [?d :ast/name ?target]
-       [descendant ?e ?d]]
-     (-> uri d/connect db)
+       [?d :ast/name ?target]]
+      (-> uri d/connect db)
      (concat rules/descendant rules/namespace)))
 
 (comment
