@@ -39,54 +39,72 @@
             (d/transact conn tdata)))
         (println "AST transaction complete.")
         (db conn)))))
-  
-  ;; How many top-level forms?
-  (count (q '[:find ?e
-              :where
-              [?e :ast/top-level true]]
-            ast-db))
-  
-  ;; How many ast nodes are there in core.cljs?
-  (count (q '[:find ?e
-              :where
-              [?e :ast/op]
-              [?e :ast/ns :cljs.core]]
-            ast-db))
 
-  ;; What namespaces have been analyzed?
-  (q '[:find ?ns
-       :where
-       [_ :ast/ns ?ns]]
-     ast-db)
+  (def child-rule
+    '[
+      #_[[child ?parent ?child]
+         [?parent :ast.if/test ?child]]
+      #_[[child ?parent ?child]
+         [?parent :ast.if/then ?child]]
+      #_[[child ?parent ?child]
+         [?parent :ast.if/else ?child]]
+      
+      #_[[child ?parent ?child]
+         [?parent :ast.def/init ?child]]
 
-  ;; What ops are in use?
-  (q '[:find ?op
-       :where [_ :ast/op ?op]]
-     ast-db)
-
-  ;; Where are no-ops?
-  (q '[:find ?line
-       :where
-       [?e :ast/op :no-op]
-       [?e :ast/line ?line]]
-     ast-db)
+      #_[[child ?parent ?child]
+         [?parent :ast.fn/method ?method]
+         [?method :ast.fn.method/statement ?child]]
+      #_[[child ?parent ?child]
+         [?parent :ast.fn/method ?method]
+         [?method :ast.fn.method/return ?child]]
+      
+      #_[[child ?parent ?child]
+         [?parent :ast.do/statement ?child]]
+      #_[[child ?parent ?child]
+         [?parent :ast.do/return ?child]]
+      
+      #_[[child ?parent ?child]
+         [?parent :ast.let/binding ?binding]
+         [?binding :ast.let.binding/init ?child]]
+      #_[[child ?parent ?child]
+         [?parent :ast.let/statement ?child]]
+      #_[[child ?parent ?child]
+         [?parent :ast.let/return ?child]]
+      
+      #_[[child ?parent ?child]
+         [?parent :ast.invoke/f ?child]
+         [?parent :ast.invoke/arg ?child]]
+      
+      #_[[child ?parent ?child]
+         [?parent :ast.recur/arg ?child]]
+      
+      [[child ?a ?d]
+       [?a :ast.default/child ?d]]])
   
-  ;; What forms are on line 288?
-  (q '[:find ?form
+  (def ancestor
+    '[[[ancestor ?ancestor ?descendant]
+       [child ?ancestor ?descendant]]
+      [[ancestor ?ancestor ?descendant]
+       [?ancestor :ast.default/child ?middle-man]
+       ;[child ?ancestor ?middle-man]
+       [ancestor ?middle-man ?descendant]]])
+
+  (q '[:find ?descendant
        :in $ %
        :where
-       [?op :ast/op]
-       [?op :ast/line 288]
-       [form ?op ?form]
-       [?op :ast/ns :domina]]
-     ast-db rules/form)
-
+       [?map :ast.def/name :cljs.core/map]
+       [?map :ast.def/init ?init]
+       [ancestor ?init ?descendant]]
+     ast-db
+     (concat ancestor child-rule))
+  
   ;; Find documentation and line number
   (q '[:find ?line ?doc
        :in $ ?name
        :where
-       [?def :db/ident ?name]
-       [?def :db/doc ?doc]
+       [?def :ast.def/name ?name]
+       [?def :ast.def/doc ?doc]
        [?def :ast/line ?line]]
      ast-db :cljs.core/map-indexed)
   
@@ -102,13 +120,10 @@
      ast-db :cljs.core/map)
   
   ;; What are the most used local/var names?
-  (->>  (q '[:find ?var ?sym
-             :in $ ?local ?ns
+  (->>  (q '[:find ?var ?name
              :where
-             [?var :ast.var/local ?local]
-             [?var :ast/name ?sym]
-             [?var :ast/ns ?ns]]
-           ast-db false :domina.events)
+             [?var :ast.var/name ?name]]
+           ast-db)
         (map second)
         frequencies
         (sort-by second)
