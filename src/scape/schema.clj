@@ -15,7 +15,13 @@
         {:db/doc doc}))))
 
 (def common
-  [[:ast/line :long :one]])
+  [[:ast/line :long :one]
+   [:ast/op :keyword :one]
+   [:ast/ns :keyword :one]
+   [:ast/form :string :one]])
+
+(def top-level
+  [[:ast/top-level :boolean :one]])
 
 (def op-if
   [[:ast.if/test :ref :one]
@@ -23,7 +29,12 @@
    [:ast.if/else :ref :one]])
 
 (def op-var
-  [[:ast.var/name :keyword :one]])
+  [[:ast.var/name :keyword :one]
+   [:ast.var/ns :keyword :one]
+   [:ast.var/ns-qualified-name :keyword :one]])
+
+(def op-local
+  [[:ast.local/name :keyword :one]])
 
 (def op-def
   [[:ast.def/name :keyword :one]
@@ -64,8 +75,10 @@
 (def schema
   (map #(apply attribute %)
        (concat common
+               top-level
                op-if
                op-var
+               op-local
                op-def
                op-fn
                op-do

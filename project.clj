@@ -7,4 +7,4 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/clojurescript "0.0-1443"]
                  [domina "1.0.0-SNAPSHOT"]
-                 [com.datomic/datomic-free "0.8.3372"]])
+                 [com.datomic/datomic-free "0.8.3397"]])
