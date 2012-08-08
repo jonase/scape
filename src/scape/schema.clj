@@ -14,31 +14,79 @@
       (when doc
         {:db/doc doc}))))
 
+(def common
+  [[:ast/line :long :one]
+   [:ast/op :keyword :one]
+   [:ast/ns :keyword :one]
+   [:ast/form :string :one]])
+
+(def top-level
+  [[:ast/top-level :boolean :one]])
+
+(def op-if
+  [[:ast.if/test :ref :one]
+   [:ast.if/then :ref :one]
+   [:ast.if/else :ref :one]])
+
+(def op-var
+  [[:ast.var/name :keyword :one]
+   [:ast.var/ns :keyword :one]
+   [:ast.var/ns-qualified-name :keyword :one]])
+
+(def op-local
+  [[:ast.local/name :keyword :one]])
+
+(def op-def
+  [[:ast.def/name :keyword :one]
+   [:ast.def/init :ref :one]
+   [:ast.def/doc :string :one]])
+
+(def op-fn
+  [[:ast.fn/method :ref :many]
+   [:ast.fn.method/statement :ref :many]
+   [:ast.fn.method/return :ref :one]])
+
+(def op-do
+  [[:ast.do/statement :ref :many]
+   [:ast.do/return :ref :one]])
+
+(def op-constant
+  [])
+
+(def op-let
+  [[:ast.let.binding/name :keyword :one]
+   [:ast.let.binding/init :ref :one]
+   [:ast.let/loop :boolean :one]
+   [:ast.let/binding :ref :many]
+   [:ast.let/statement :ref :many]
+   [:ast.let/return :ref :one]])
+
+(def op-invoke
+  [[:ast.invoke/f :ref :one]
+   [:ast.invoke/arg :ref :many]])
+
+(def op-recur
+  [[:ast.recur/arg :ref :many]])
+
+(def op-default
+  [[:ast.default/op :keyword :one]
+   [:ast.default/child :ref :many]])
+
 (def schema
   (map #(apply attribute %)
-       [[:ast/op             :keyword :one]
-        [:ast/top-level      :boolean :one]
-        [:ast/statement      :ref     :many]
-        [:ast/ret            :ref     :one]
-        [:ast/child          :ref     :many]
-        [:ast/form           :string  :one]
-        [:ast/line           :long    :one]
-        [:ast/name           :keyword :one]
-        [:ast/ns             :keyword :one]
-        [:ast/arg            :ref     :many]
-        [:ast.constant/type  :string  :one]
-        [:ast.if/test        :ref     :one]
-        [:ast.if/then        :ref     :one]
-        [:ast.if/else        :ref     :one]
-        [:ast/init           :ref     :one]
-        [:ast.var/local      :boolean :one]
-        [:ast.fn/method      :ref     :many]
-        [:ast.fn/variadic    :boolean :one]
-        [:ast.fn/fixed-arity :long    :one]
-        [:ast.throw/expr     :ref     :one]
-        [:ast.let/loop       :boolean :one]
-        [:ast.let/binding    :ref     :many]
-        [:ast.invoke/f       :ref     :one]]))
-   
+       (concat common
+               top-level
+               op-if
+               op-var
+               op-local
+               op-def
+               op-fn
+               op-do
+               op-constant
+               op-let
+               op-invoke
+               op-recur
+               op-default)))
+
 
    

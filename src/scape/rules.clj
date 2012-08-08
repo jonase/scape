@@ -1,51 +1,51 @@
-(ns scape.rules
-  (:refer-clojure :exclude [namespace type]))
+(ns scape.rules)
 
-(def namespace
-  '[[[namespace ?var ?ns]
-     [?var :ast/name ?name]
-     [(namespace ?name) ?ns-str]
-     [(keyword ?ns-str) ?ns]]])
-
-(def descendant 
-  '[[[descendant ?r ?d]
-     [?r :ast/child ?d]]
-    [[descendant ?r ?d]
-     [?r :ast/child ?x]
-     [descendant ?x ?d]]])
-
-(def top-level
-  '[[[top-level ?tl ?e]
-     [?t1 :ast/top-level true]
-     [descendant ?t1 ?e]]])
-
-(def form
-  '[[[form ?e ?f]
-     [?e :ast/form ?fs]
-     [(read-string ?fs) ?f]]])
-
-(def type
-  '[[[type ?e ?t]
-     [?e :ast.constant/type ?t]]
-    [[type ?e ?t]
-     ;[?e :ast/op]
-     [?e :ast/ret ?r]
-     [type ?r ?t]]
-    [[type ?e ?t]
-     [?e :ast.fn/method ?m]
-     [?m :ast/ret ?r]
-     [type ?r ?t]]])
-
-(def transitive-var-dep
-  '[[[transitive-var-dep ?e ?v]
-     [descendant ?e ?v]
-     [?v :ast/op :var]
-     [?v :ast.var/local false]]
-    [[transititve-var-dep ?e ?v]
-     [descendant ?e ?v*]
-     [?v* :ast/op :var]
-     [?v* :ast.var/local false]
-     [?ve :db/ident ?v*]
-     [transitive-var-dep ?ve ?v]]])
-
+(def child
+  '[[[child ?parent ?child]
+     [?parent :ast.if/test ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.if/then ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.if/else ?child]]
     
+    [[child ?parent ?child]
+     [?parent :ast.def/init ?child]]
+    
+    [[child ?parent ?child]
+     [?parent :ast.fn/method ?method]
+     [?method :ast.fn.method/statement ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.fn/method ?method]
+     [?method :ast.fn.method/return ?child]]
+    
+    [[child ?parent ?child]
+     [?parent :ast.do/statement ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.do/return ?child]]
+    
+    [[child ?parent ?child]
+     [?parent :ast.let/binding ?binding]
+     [?binding :ast.let.binding/init ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.let/statement ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.let/return ?child]]
+    
+    [[child ?parent ?child]
+     [?parent :ast.invoke/f ?child]]
+    [[child ?parent ?child]
+     [?parent :ast.invoke/arg ?child]]
+    
+    [[child ?parent ?child]
+     [?parent :ast.recur/arg ?child]]
+    
+    [[child ?parent ?child]
+     [?parent :ast.default/child ?child]]])
+
+(def ancestor
+  '[[[ancestor ?a ?d]
+     [child ?a ?d]]
+    [[ancestor ?a ?d]
+     [child ?a ?x]
+     [ancestor ?x ?d]]])
+
