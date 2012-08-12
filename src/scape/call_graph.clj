@@ -9,15 +9,13 @@
   (q '[:find ?source ?target
        :in $ %
        :where
-       [?e :db/ident ?source]
+       [?e :ast.def/name ?source]
        [?e :ast/ns :domina]
-       [descendant ?e ?d]
-       [?d :ast/op :var]
-       [?d :ast.var/local false]
-       [namespace ?d :domina]
-       [?d :ast/name ?target]]
-      (-> uri d/connect db)
-     (concat rules/descendant rules/namespace)))
+       [ancestor ?e ?d]
+       [?d :ast.var/ns :domina]
+       [?d :ast.var/ns-qualified-name ?target]]
+     (-> uri d/connect db)
+     (concat rules/ancestor rules/child)))
 
 (comment
 

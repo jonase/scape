@@ -18,19 +18,14 @@ if you're interested to see how it works.
 
 The following query
 
-    (q '[:find ?source ?target
-         :in $ %
-         :where
-         [?e :db/ident ?source]
-         [?e :ast/ns :domina]
-         [?d :ast/op :var]
-         [?d :ast.var/local false]
-         [namespace ?d :domina]
-         [?d :ast/name ?target]
-         [descendant ?e ?d]]
-       (-> uri d/connect db)
-       (concat rules/descendant 
-               rules/namespace))
+    [:find ?source ?target
+     :in $ %
+     :where
+     [?e :ast.def/name ?source]
+     [?e :ast/ns :domina]
+     [ancestor ?e ?d]
+     [?d :ast.var/ns :domina]
+     [?d :ast.var/ns-qualified-name ?target]]
 
 finds all definitions in the `domina` namespace together with all
 (internal) calls those defs make. The code in the
