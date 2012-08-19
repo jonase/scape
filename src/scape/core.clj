@@ -208,15 +208,15 @@
        [?var :ast.var/name ?var-name]]
      ast-db :cljs.core :domina.events)
   
-  ;; Who's calling my namespace?
+  ;; Who's using my namespace?
   (q '[:find ?ns
-       :in $ % ?my-ns
+       :in $ ?my-ns
        :where
+       [?var :ast.var/ns ?my-ns]
        [?var :ast/op :var]
        [?var :ast/ns ?ns]
-       [namespace ?var ?my-ns]
        [(not= ?ns ?my-ns)]]
-     ast-db rules/namespace :clojure.string)
+     ast-db :clojure.string)
 
   ;; Who's using my fn (and on what line)?
   (q '[:find ?ns ?line
@@ -227,7 +227,7 @@
        [?var :ast/ns ?ns]
        [?var :ast.var/ns ?my-ns]
        [(not= ?ns ?my-ns)]]
-     ast-db :cljs.core/filter)
+     ast-db :cljs.core/map)
 
   ;; What vars (from other namespaces) are used from my ns?
   (q '[:find ?var-name
@@ -281,7 +281,7 @@
        :where
        [?def :ast.def/name ?my-def]
        [transitive-var ?def ?var]
-       [?var :ast.var/name ?var-name]]
+       [?var :ast.var/ns-qualified-name ?var-name]]
      ast-db
      (concat transitive-var
              rules/ancestor
