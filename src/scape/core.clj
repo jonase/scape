@@ -155,11 +155,13 @@
   ;;What op's are parents to recur?
   (->>
    (q '[:find ?op ?p
+        :in $ %
         :where
         [?e :ast/op :recur]
-        [?p :ast/child ?e]
+        [child ?p ?e]
         [?p :ast/op ?op]]
-      ast-db)
+      ast-db
+      rules/child)
    (map first)
    frequencies)
 
@@ -169,9 +171,10 @@
         :in $ %
         :where
         [?e :ast/op :def]
-        [?e :ast/child ?init]
+        [child ?e ?init]
         [?init :ast/op ?op]]
-      ast-db)
+      ast-db
+      rules/child)
    (map first)
    frequencies)
 
