@@ -17,13 +17,28 @@
      (-> uri d/connect db)
      (concat rules/ancestor rules/child)))
 
-(comment
+(defn ns-calls
+  []
+  (q '[:find ?source ?target
+       :where
+       [?var :ast/ns ?source]
+       [?var :ast.var/ns ?target]
+       [(not= ?source ?target)]]
+     (-> uri d/connect db)))
 
-  (with-open [w (io/writer "callgraph.dot")]
+(defn digraph [name data]
+  (with-open [w (io/writer (str name ".dot"))]
     (binding [*out* w]
       (println "digraph g {")
-      (doseq [[source target] (domina-calls)]
+      (doseq [[source target] data]
         (printf "\"%s\" -> \"%s\";\n" source target))
-      (println "}")))
+      (println "}"))))
 
+  
+(comment
+  ;; Calls from domina to another ns
+  (digraph "callgraph" (domina-calls))
+
+  ;; Calls from one ns to another
+  (digraph "nsgraph" (ns-calls))
   )
