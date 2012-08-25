@@ -288,4 +288,18 @@
              rules/child)
      :cljs.core/map)
 
+  ;; List all deftypes in ?ns
+  (q '[:find ?deftype
+       :in $ ?ns
+       :where
+       [?d :ast.deftype*/name ?deftype]
+       [?d :ast.deftype*/ns ?ns]]
+     ast-db :cljs.core)
+
+  ;; List all defrecords
+  (q '[:find ?defrecord
+       :where
+       [_ :ast.defrecord*/name ?defrecord]]
+     ast-db)
+  
   )

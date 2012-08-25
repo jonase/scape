@@ -68,6 +68,18 @@
 (def op-recur
   [[:ast.recur/arg :ref :many]])
 
+(def op-deftype*
+  [[:ast.deftype*/name :keyword :one]
+   [:ast.deftype*/ns :keyword :one]
+   [:ast.deftype*/ns-qualified-name :keyword :one]
+   [:ast.deftype*/field :keyword :many]])
+
+(def op-defrecord*
+  [[:ast.defrecord*/name :keyword :one]
+   [:ast.defrecord*/ns :keyword :one]
+   [:ast.defrecord*/ns-qualified-name :keyword :one]
+   [:ast.defrecord*/field :keyword :many]])
+
 (def op-default
   [[:ast.default/op :keyword :one]
    [:ast.default/child :ref :many]])
@@ -86,6 +98,8 @@
                op-let
                op-invoke
                op-recur
+               op-deftype*
+               op-defrecord*
                op-default)))
 
 

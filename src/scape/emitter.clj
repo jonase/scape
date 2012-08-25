@@ -115,6 +115,22 @@
                :ast.recur/arg (map :db/id args))]
             (mapcat emit args))))
 
+(defmethod emit :deftype* [expr-obj]
+  (let [t (:t expr-obj)]
+    [(assoc (emit-common expr-obj)
+       :ast.deftype*/name (name t)
+       :ast.deftype*/ns (namespace t)
+       :ast.deftype*/ns-qualified-name t
+       :ast.deftype*/field (:fields expr-obj))]))
+
+(defmethod emit :defrecord* [expr-obj]
+  (let [t (:t expr-obj)]
+    [(assoc (emit-common expr-obj)
+       :ast.defrecord*/name (name t)
+       :ast.defrecord*/ns (namespace t)
+       :ast.defrecord*/ns-qualified-name t
+       :ast.defrecord*/field (:fields expr-obj))]))
+  
 (defmethod emit :default [expr-obj]
   (let [children (map assoc-id (:children expr-obj))]
     (concat [(assoc (emit-common expr-obj)
