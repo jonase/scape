@@ -80,6 +80,10 @@
    [:ast.defrecord*/ns-qualified-name :keyword :one]
    [:ast.defrecord*/field :keyword :many]])
 
+(def op-new
+  [[:ast.new/ctor :ref :one]
+   [:ast.new/args :ref :many]])
+
 (def op-default
   [[:ast.default/op :keyword :one]
    [:ast.default/child :ref :many]])
@@ -100,6 +104,7 @@
                op-recur
                op-deftype*
                op-defrecord*
+               op-new
                op-default)))
 
 

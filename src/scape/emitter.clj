@@ -131,6 +131,15 @@
        :ast.defrecord*/ns-qualified-name t
        :ast.defrecord*/field (:fields expr-obj))]))
   
+(defmethod emit :new [expr-obj]
+  (let [ctor (assoc-id (:ctor expr-obj))
+        args (map assoc-id (:args expr-obj))]
+    (concat [(assoc (emit-common expr-obj)
+               :ast.new/ctor (:db/id ctor)
+               :ast.new/args (map :db/id args))]
+            (emit ctor)
+            (mapcat emit args))))
+
 (defmethod emit :default [expr-obj]
   (let [children (map assoc-id (:children expr-obj))]
     (concat [(assoc (emit-common expr-obj)

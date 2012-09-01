@@ -301,5 +301,21 @@
        :where
        [_ :ast.defrecord*/name ?defrecord]]
      ast-db)
+
+  ;; Unused functions in [?ns ...]
+  (let [defs (q '[:find ?var
+                  :in $ [?ns ...]
+                  :where
+                  [?e :ast.def/name ?var]
+                  [?e :ast/ns ?ns]]
+                ast-db
+                [:domina
+                 :domina.events])
+        vars (q '[:find ?var
+                  :where
+                  [_ :ast.var/ns-qualified-name ?var]]
+                ast-db)]
+    (clojure.set/difference (set defs)
+                            (set vars)))
   
   )
